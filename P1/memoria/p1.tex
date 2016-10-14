@@ -333,8 +333,29 @@ En \hyperref[convolucion]{Figura \ref*{convolucion}} se muesta cómo funciona la
 
 \begin{figure}[!h]
     \centering
-    \includegraphics[width=\textwidth]{convolucion}
-    \caption{Resultado de aplicar el filtro Gaussiano sobre una imagen. Collage comparativo con el resultado de \textit{OpenCV} y la imagen original.}
+    \mbox {
+    \subfigure[Resultado obtenido con la función \texttt{getGaussianKernel} de \textit{OpenCV}, usando como parámetros $k_{size} = 7$ y $\sigma=1$]{
+    \label{opencv1}
+    \includegraphics[width=0.5\textwidth]{opencv_sigma2}
+    }
+    \qquad
+    \subfigure[Resultado obtenido con la función \texttt{my\_getGaussianKernel}, usando como parámetro $\sigma=1$] {
+    \label{propio1}
+    \includegraphics[width=0.5\textwidth]{propio_sigma2}
+    }
+    }
+    \mbox{
+    \subfigure[Resultado obtenido con la función \texttt{getGaussianKernel} de \textit{OpenCV}, usando como parámetros $k_{size} = 19$ y $\sigma=3$]{
+    \label{opencv1}
+    \includegraphics[width=0.5\textwidth]{opencv_sigma3}
+    }
+    \qquad
+    \subfigure[Resultado obtenido con la función \texttt{my\_getGaussianKernel}, usando como parámetro $\sigma=3$] {
+    \label{propio1}
+    \includegraphics[width=0.5\textwidth]{propio_sigma3}
+    }
+    }
+    \caption{Comparación entre el filtro gaussiano de \textit{OpenCV} y el desarrollado para la práctica.}
     \label{convolucion}
 \end{figure}
 
