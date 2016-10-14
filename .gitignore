@@ -87,6 +87,9 @@ ENV/
 
 # Pycharm
 .idea/
+.idea
+*.xml
+*.iml
 
 # Project stuff
 .directory
