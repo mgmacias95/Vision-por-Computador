@@ -50,7 +50,7 @@
 
 \tableofcontents
 
-\section{Ejercicio A}
+\section{Convolución de una imagen con una máscara}
 \subsection{Cálculo del vector máscara}
 
 A continuación se muestran las funciones encargadas de calcular la máscara:
@@ -409,7 +409,6 @@ def hybrid(img_alta,img_baja,space=210,sigma_alta=1.5,sigma_baja=3.5,collage=Tru
     \label{einsrilyn}
     \includegraphics[width=0.75\textwidth]{einsrilyn}
     }
-    \qquad
     \subfigure[Resultado tras mezclar las frecuencias bajas de un pájaro con las frecuencias altas de un avión] {
     \label{birdplane}
     \includegraphics[width=0.75\textwidth]{birdplane}
@@ -423,5 +422,89 @@ def hybrid(img_alta,img_baja,space=210,sigma_alta=1.5,sigma_baja=3.5,collage=Tru
 \end{figure}
 
 Como se ve en las imágenes de la \hyperref[hybrid]{Figura \ref*{hybrid}}, si ves la imagen de cerca parece una cosa y si la miras desde lejos parece justo la contraria. Este efecto óptico se consigue porque cuando vemos algo de cerca lo identificamos mediante sus frecuencias altas mientras que, cuando lo vemos de lejos, lo identificamos por sus frecuencias bajas.
+
+\section{Pirámides Gaussianas}
+
+Las \textbf{pirámides gaussianas} son un collage en el que se representa una misma imagen en distintas escalas: 1/1, 1/2, 1/4...
+
+Para hacer la pirámide gaussiana de una imagen, he desarrollado dos funciones: \texttt{resize} para escalar una una imagen con un parámetro $scale$, de forma $\frac{1}{scale}$ y \texttt{piramide\_gaussiana} para crear la pirámide.
+
+En la función \textbf{piramide\_gaussiana}, creo un canvas con tamaño:
+
+\begin{displaymath}
+size_{canvas} = \bigg [ ancho_{canvas} + \frac{ancho_{canvas}}{2}, alto_{canvas} \bigg ]
+\end{displaymath}
+
+Una vez creado el canvas, se coloca la imagen original en la parte izquierda y, se hace un bucle para colocar el resto de imágenes escaladas a la derecha. Se colocan las siguientes escalas: 1/2, 1/4, 1/8 y 1/16.
+
+Es importante destacar que para escalar una imagen hay que seguir dos pasos: primero aplicar un filtro gaussiano para eliminar ruido y, después, redimensionar la imagen. Si no se hace esto, la imagen escalada tendrá demasiado ruido.
+
+\begin{minted}[frame=lines, label={Pirámides Gaussianas}]{python}
+# Función para redimensionar una imagen 1/scala de su tamaño.
+def resize(img, scale):
+    # Para hacer un buen redimensionado. Debemos primero aplicar un filtro 
+    # gaussiano a la imagen y después quedarnos con las filas/columnas %scale. 
+    # Por ejemplo si scale=2, sólo nos quedaríamos con las pares.
+    img_blur = my_filter2D(src=img, kernel=my_getGaussianKernel(scale/2),\
+        borderType='replicate')
+    # una vez desenfocada la imagen, creamos una nueva imagen para 
+    # guardarla y nos quedamos con las filas/columnas %scale
+    img_little = img_blur[range(0,img_blur.shape[0],scale)]
+    img_little = img_little[:,range(0,img_blur.shape[1],scale)]
+
+    return img_little
+
+# Función para hacer un collage tipo pirámide gaussiana
+def piramide_gaussiana(img, scale=5):
+    # el tamaño del canvas debe ser: 
+    # ancho_img_original + 0.5*ancho_img_original x altura_img_original
+    dims = img.shape
+    if len(dims) == 3:
+        piramide = np.ones((dims[0],dims[1]+floor(dims[1] * 0.5),3),\
+            np.uint8)*255
+    else:
+        piramide = np.ones((dims[0], dims[1] + floor(dims[1] * 0.5)),\
+            np.uint8) * 255
+
+    # colocamos la primera imagen en tamaño original
+    piramide[0:dims[0],0:dims[1]] = img
+    # calculamos el lugar donde poner la segunda
+    start_height = 0
+    end_height = ceil(dims[0]/2)
+    start_width = dims[1]   # este lugar será igual para todas las imágenes
+    start_width -= 1
+    little = img
+    for i in range(2,scale+1):
+        # calculamos la i-esima imagen
+        little = resize(img=little, scale=2)
+        # guardamos sus medidas
+        dims = little.shape
+        # la colocamos en el sitio calculado
+        piramide[start_height:end_height,start_width:start_width+dims[1]] = little
+        # calculamos dónde colocar la siguiente imagen
+        start_height = end_height
+        end_height = ceil(dims[0]/2) + start_height
+
+    return piramide
+\end{minted}
+
+\begin{figure}[!h]
+    \centering
+    \mbox{
+    \subfigure[Pirámide gaussiana de la imagen híbrida hecha entre \textit{Albert Einstein} y \textit{Marilyn Monroe}]{
+    \label{einsrilyn}
+    \includegraphics[width=0.5\textwidth]{piramide_einsrilyn}
+    }
+    \qquad
+    \subfigure[Pirámide gaussiana de la imagen híbrida hecha entre un perro y un gato]{
+    \label{catdog}
+    \includegraphics[width=0.5\textwidth]{piramide_catdog}
+    }
+    }
+    \caption{Ejemplos de pirámides gaussianas}
+    \label{piramide}
+\end{figure}
+
+Por ejemplo, en las imágenes de la \hyperref[piramide]{Figura \ref*{piramide}}. De ver un gato pasamos a ver un perro y de ver a \textit{Albert Einstein} pasamos a ver a \textit{Marilyn Monroe}. Esto se debe a que cuando escalamos una imagen perdemos detalles de la misma, tanto por eliminar filas y columnas como por aplicar un filtro gaussiano cada vez que escalamos. 
 
 \end{document}

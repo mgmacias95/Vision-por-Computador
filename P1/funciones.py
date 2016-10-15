@@ -8,7 +8,7 @@
 # Profesor: Nicolás Perez de la Blanca Capilla
 ########################################################################################################################
 
-from math import floor, exp
+from math import floor, exp, ceil
 import numpy as np
 import cv2
 
@@ -193,3 +193,44 @@ def hybrid(img_alta, img_baja, space=210, sigma_alta=1.5, sigma_baja=3.5, collag
         return make_collage([paso_bajo,paso_alto,paso_alto+paso_bajo],["Low","High","Both"],space)
     else:
         return paso_alto+paso_bajo
+
+# Función para redimensionar una imagen 1/scala de su tamaño.
+def resize(img, scale):
+    # Para hacer un buen redimensionado. Debemos primero aplicar un filtro gaussiano a la imagen y después quedarnos con
+    # las filas/columnas %scale. Por ejemplo si scale=2, sólo nos quedaríamos con las pares (una sí, una no, ....).
+    img_blur = my_filter2D(src=img, kernel=my_getGaussianKernel(scale/2),borderType='replicate')
+    # una vez desenfocada la imagen, creamos una nueva imagen para guardarla y nos quedamos con las filas/columnas %scale
+    img_little = img_blur[range(0,img_blur.shape[0],scale)]
+    img_little = img_little[:,range(0,img_blur.shape[1],scale)]
+
+    return img_little
+
+# Función para hacer un collage tipo pirámide gaussiana
+def piramide_gaussiana(img, scale=5):
+    # el tamaño del canvas debe ser ancho_img_original + 0.5*ancho_img_original x altura_img_original
+    dims = img.shape
+    if len(dims) == 3:
+        piramide = np.ones((dims[0],dims[1]+floor(dims[1] * 0.5),3),np.uint8)*255
+    else:
+        piramide = np.ones((dims[0], dims[1] + floor(dims[1] * 0.5)),np.uint8) * 255
+
+    # colocamos la primera imagen en tamaño original
+    piramide[0:dims[0],0:dims[1]] = img
+    # calculamos el lugar donde poner la segunda
+    start_height = 0
+    end_height = ceil(dims[0]/2)
+    start_width = dims[1]   # este lugar será igual para todas las imágenes
+    start_width -= 1
+    little = img
+    for i in range(2,scale+1):
+        # calculamos la i-esima imagen
+        little = resize(img=little, scale=2)
+        # guardamos sus medidas
+        dims = little.shape
+        # la colocamos en el sitio calculado
+        piramide[start_height:end_height,start_width:start_width+dims[1]] = little
+        # calculamos dónde colocar la siguiente imagen
+        start_height = end_height
+        end_height = ceil(dims[0]/2) + start_height
+
+    return piramide
