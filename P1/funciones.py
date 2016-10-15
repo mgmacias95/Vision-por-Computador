@@ -176,3 +176,20 @@ def make_collage(lista_imagenes, lista_texto, space=450):
                 fontScale=3, color=0)
 
     return collage
+
+def hybrid(img_alta, img_baja, space=210, sigma_alta=1.5, sigma_baja=3.5, collage = True):
+    # obtenemos las máscara respectivas para cada imagen
+    my_mascara_alto = my_getGaussianKernel(sigma=sigma_alta)
+    my_mascara_bajo = my_getGaussianKernel(sigma=sigma_baja)
+    # leemos las dos imágenes que vamos a mezclar
+    img = cv2.imread(img_alta, cv2.IMREAD_UNCHANGED)
+    img2 = cv2.imread(img_baja, cv2.IMREAD_UNCHANGED)
+    # para quedarnos con las frecuencias altas de la imagen, restamos las frecuencias bajas que obtenemos con el
+    # filtro gaussiano a la imagen original
+    paso_alto = img - my_filter2D(src=img, kernel=my_mascara_alto, borderType='replicate')
+    paso_bajo = my_filter2D(src=img2, kernel=my_mascara_bajo, borderType='replicate')
+    # para obtener la imagen híbrida, sumamos las dos imágenes.
+    if collage:
+        return make_collage([paso_bajo,paso_alto,paso_alto+paso_bajo],["Low","High","Both"],space)
+    else:
+        return paso_alto+paso_bajo
