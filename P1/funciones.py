@@ -163,7 +163,7 @@ def my_filter2D_onechannel(src, kernel, borderType):
     return img_bordes[mitad_mascara:-mitad_mascara, mitad_mascara:-mitad_mascara]
 
 def make_collage(lista_imagenes, lista_texto, space=450):
-    # inicializamos una matriz de ceros con el tamaño deseado
+    # inicializamos una matriz de 255s con el tamaño deseado
     if len(lista_imagenes[0].shape) == 3:
         collage = np.ones((lista_imagenes[0].shape[0]+100,lista_imagenes[0].shape[1]*3,3), np.uint8)*255
     else:
