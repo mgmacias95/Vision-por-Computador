@@ -319,26 +319,28 @@ La función \texttt{my\_filter2D} comprueba en primer lugar si la imagen es en c
 def my_filter2D_onechannel(src, kernel, borderType):
     mitad_mascara = floor(kernel.size/2)
     # En primer lugar, añadimos bordes a la imagen
-    img_bordes = my_copyMakeBorder(src=src, space=mitad_mascara, borderType=borderType)
-    img_aux = np.ones(img_bordes.shape, np.uint8)*255
+    img_bordes = my_copyMakeBorder(src=src, space=mitad_mascara, \
+        borderType=borderType).astype(np.float64)
+
+    img_aux = np.ones(img_bordes.shape, np.float64)*255
     # Después, aplicamos el kernel a cada trocito
     for j in range(mitad_mascara, img_bordes.shape[0]-mitad_mascara):
         for i in range(mitad_mascara,img_bordes.shape[1]-mitad_mascara):
-            img_aux[j,i] = apply_kernel(img_bordes[j,i-mitad_mascara:\
-                i+1+mitad_mascara], kernel)
+            img_aux[j,i] = apply_kernel(img_bordes[j,\
+                i-mitad_mascara:i+1+mitad_mascara], kernel)
     img_bordes = img_aux.copy(order='F')
     img_aux = np.ones(img_bordes.shape, np.uint8)*255
     # Después, aplicamos el kernel a cada trocito
     for j in range(mitad_mascara, img_bordes.shape[1]-mitad_mascara):
         for i in range(mitad_mascara,img_bordes.shape[0]-mitad_mascara):
-            img_aux[i,j] = apply_kernel(img_bordes[i-mitad_mascara:\
-                i+1+mitad_mascara,j], kernel)
+            img_aux[i,j] = apply_kernel(img_bordes[i-mitad_mascara:i+1+mitad_mascara,\
+                j], kernel)
     img_bordes = img_aux.copy(order='F')
     # Devolvemos la imagen con el filtro aplicado
     return img_bordes[mitad_mascara:-mitad_mascara, mitad_mascara:-mitad_mascara]
 \end{minted}
 
-La función \texttt{my\_filter2D\_onechannel} es la que aplica el filtro sobre un único canal. Para ello, calcula en primer lugar la mitad del tamaño de la máscara para saber el espacio que tiene que dejar en cada borde la imagen. Tras esto, aplica un borde (especificado por parámetro) a la imagen. Usando la imagen con bordes, empezamos a aplicar el filtro a la imagen usando la función \texttt{apply\_kernel}, \textbf{primero por filas y después por columnas}. Me ha parecido mejor hacerlo así en vez de hacerlo en una función a parte y trasponer la imagen por cuestiones de eficiencia. Es importante destarcar que el filtro debe aplicarse sobre una imagen copia auxiliar para no arrastrar el filtro a lo largo de toda la imagen.
+La función \texttt{my\_filter2D\_onechannel} es la que aplica el filtro sobre un único canal. Para ello, calcula en primer lugar la mitad del tamaño de la máscara para saber el espacio que tiene que dejar en cada borde la imagen. Tras esto, aplica un borde (especificado por parámetro) a la imagen. Usando la imagen con bordes, empezamos a aplicar el filtro a la imagen usando la función \texttt{apply\_kernel}, \textbf{primero por filas y después por columnas}. Me ha parecido mejor hacerlo así en vez de hacerlo en una función a parte y trasponer la imagen por cuestiones de eficiencia.
 
 En \hyperref[convolucion]{Figura \ref*{convolucion}} se muesta cómo funciona la función con $\sigma = 1$ y se compara con el resultado que obtiene \textit{OpenCV} con el mismo parámetro. En comparación con \textit{OpenCV}, me da la sensación de que \textit{OpenCV} sólo aplica la máscara en una dimensión, ya que el desenfoque obtenido con \textit{OpenCV} da la sensación de movimiento vertical. En cambio, el resultado obtenido con la función \texttt{my\_filter2D} sí que da la sensación de un desenfoque ``uniforme''.
 
@@ -381,24 +383,25 @@ Para hacer una imagen híbrida, he aplicado a ambas imágenes una máscara de co
 He añadido a la función un parámetro para dejar que el usuario decida si quiere el resultado en forma de collage o no. En el caso de que el usuario quiera el resultado en forma de collage, obtendrá como resultado un collage con las tres imágenes: la imagen con frecuencias bajas, la imagen con frecuencias altas y la híbrida de ambas.
 
 \begin{minted}[frame=lines, label={Funciones para hacer imágenes híbridas}]{python}
-def hybrid(img_alta,img_baja,space=210,sigma_alta=1.5,sigma_baja=4.5,collage=True):
+def hybrid(img_alta, img_baja, sigma_alta=1.5, sigma_baja=4, 
+        blackwhite=False, collage=True):
     # obtenemos las máscara respectivas para cada imagen
     my_mascara_alto = my_getGaussianKernel(sigma=sigma_alta)
     my_mascara_bajo = my_getGaussianKernel(sigma=sigma_baja)
     # leemos las dos imágenes que vamos a mezclar
-    img = cv2.imread(img_alta, cv2.IMREAD_UNCHANGED)
-    img2 = cv2.imread(img_baja, cv2.IMREAD_UNCHANGED)
+    if blackwhite:
+        img = cv2.imread(img_alta, cv2.IMREAD_GRAYSCALE).astype(np.float64)
+        img2 = cv2.imread(img_baja, cv2.IMREAD_GRAYSCALE).astype(np.float64)
+    else:
+        img = cv2.imread(img_alta, cv2.IMREAD_UNCHANGED).astype(np.float64)
+        img2 = cv2.imread(img_baja, cv2.IMREAD_UNCHANGED).astype(np.float64)
     # para quedarnos con las frecuencias altas de la imagen, restamos las 
-    # frecuencias bajas que obtenemos con el filtro gaussiano a la 
-    # imagen original
-    paso_alto = img - my_filter2D(src=img, kernel=my_mascara_alto, \
-        borderType='replicate')
-    paso_bajo = my_filter2D(src=img2, kernel=my_mascara_bajo, \
-        borderType='replicate')
+    # frecuencias bajas que obtenemos con el filtro gaussiano a la imagen original
+    paso_alto = img-my_filter2D(src=img,kernel=my_mascara_alto, borderType='replicate')
+    paso_bajo = my_filter2D(src=img2,kernel=my_mascara_bajo, borderType='replicate')
     # para obtener la imagen híbrida, sumamos las dos imágenes.
     if collage:
-        return make_collage([paso_bajo,paso_alto,paso_alto+paso_bajo],\
-            ["Low","High","Both"],space)
+        return make_collage([paso_bajo, paso_alto, paso_alto + paso_bajo])
     else:
         return paso_alto+paso_bajo
 \end{minted}
@@ -516,6 +519,6 @@ def piramide_gaussiana(img, scale=5):
     \label{piramide}
 \end{figure}
 
-Por ejemplo, en las imágenes de la \hyperref[piramide]{Figura \ref*{piramide}}. De ver un gato pasamos a ver un perro y de ver a \textit{Albert Einstein} pasamos a ver a \textit{Marilyn Monroe}. Esto se debe a que cuando escalamos una imagen perdemos detalles de la misma, tanto por eliminar filas y columnas como por aplicar un filtro gaussiano cada vez que escalamos. 
+En la \hyperref[piramide]{Figura \ref*{piramide}} vemos algunos ejemplos de pirámides gaussianas con imágenes híbridas. En todos los casos, podemos observar cómo en una escala vemos la imagen por sus frecuencias altas y en una escala más baja, la vemos por sus frecuencias bajas.
 
 \end{document}
