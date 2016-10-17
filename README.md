@@ -5,4 +5,4 @@ Prácticas hechas con __Open CV__ y __Python 3__.
 
 ## Contenidos
 
-* Práctica 1: desarrollar una función de __filtro gaussiano__ (_Box filter_) desarrollando para ello la convolución de vectores 1D, añadir bordes a la imagen y la convolución 2D tomando como base la convolución 1D. Con el filtro gaussiano desarrollado, hacer __imágenes híbridas__ y __pirámides gaussianas__.
+* ___Práctica 1___: desarrollar una función de __filtro gaussiano__ (_Box filter_) desarrollando para ello la convolución de vectores 1D, añadir bordes a la imagen y la convolución 2D tomando como base la convolución 1D. Con el filtro gaussiano desarrollado, hacer __imágenes híbridas__ y __pirámides gaussianas__.
