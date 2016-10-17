@@ -23,11 +23,11 @@ if __name__ == '__main__':
     final_image = cv2.filter2D(src=img,ddepth=-1,kernel=mascara,borderType=cv2.BORDER_REPLICATE)
     my_final_image = my_filter2D(src=img, kernel=my_mascara,borderType='replicate')
     # mostramos el filtro gaussiano en un collage
-    cv2.imwrite('memoria/propio_sigma2.jpg',my_final_image)
+    # cv2.imwrite('memoria/propio_sigma2.jpg',my_final_image)
     # cv2.imwrite('memoria/opencv_sigma2.jpg', final_image)
     # cv2.imwrite('memoria/opencv_sigma3.jpg', cv2.filter2D(src=img,ddepth=-1,kernel=cv2.getGaussianKernel(ksize=19, \
     #                                                                 sigma=3),borderType=cv2.BORDER_REPLICATE))
-    cv2.imwrite('memoria/propio_sigma3.jpg', my_filter2D(src=img,kernel=my_getGaussianKernel(sigma=3),borderType='replicate'))
+    # cv2.imwrite('memoria/propio_sigma3.jpg', my_filter2D(src=img,kernel=my_getGaussianKernel(sigma=3),borderType='replicate'))
     # cv2.imshow('image', make_collage([img,final_image,my_final_image], ["Original","OpenCV","Propia"]))
     mostrar(make_collage([img, final_image, my_final_image]))
 
