@@ -162,35 +162,43 @@ def my_filter2D_onechannel(src, kernel, borderType):
     # Devolvemos la imagen con el filtro aplicado
     return img_bordes[mitad_mascara:-mitad_mascara, mitad_mascara:-mitad_mascara]
 
-def make_collage(lista_imagenes, lista_texto, space=450):
+# def make_collage(lista_imagenes, lista_texto, space=450):
+def make_collage(lista_imagenes):
     # inicializamos una matriz de 255s con el tamaño deseado
     if len(lista_imagenes[0].shape) == 3:
-        collage = np.ones((lista_imagenes[0].shape[0]+100,lista_imagenes[0].shape[1]*3,3), np.uint8)*255
+        # collage = np.ones((lista_imagenes[0].shape[0]+100,lista_imagenes[0].shape[1]*3,3), np.uint8)*255
+        collage = np.ones((lista_imagenes[0].shape[0], lista_imagenes[0].shape[1] * 3, 3), np.uint8) * 255
     else:
-        collage = np.ones((lista_imagenes[0].shape[0]+100,lista_imagenes[0].shape[1]*3), np.uint8)*255
+        # collage = np.ones((lista_imagenes[0].shape[0]+100,lista_imagenes[0].shape[1]*3), np.uint8)*255
+        collage = np.ones((lista_imagenes[0].shape[0], lista_imagenes[0].shape[1] * 3), np.uint8) * 255
 
     dims = lista_imagenes[0].shape
     for i in range(len(lista_imagenes)):
         collage[0:dims[0], i*dims[1]:dims[1]*(1+i)] = lista_imagenes[i]#.copy(order='F')
-        cv2.putText(img=collage, text=lista_texto[i], org=(25+(space*i),dims[0]+70), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=3, color=0)
+        # cv2.putText(img=collage, text=lista_texto[i], org=(25+(space*i),dims[0]+70), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+        #        fontScale=3, color=0)
 
     return collage
 
-def hybrid(img_alta, img_baja, space=210, sigma_alta=1.5, sigma_baja=3.5, collage = True):
+def hybrid(img_alta, img_baja, space=210, sigma_alta=1.5, sigma_baja=4, blackwhite = False, collage = True):
     # obtenemos las máscara respectivas para cada imagen
     my_mascara_alto = my_getGaussianKernel(sigma=sigma_alta)
     my_mascara_bajo = my_getGaussianKernel(sigma=sigma_baja)
     # leemos las dos imágenes que vamos a mezclar
-    img = cv2.imread(img_alta, cv2.IMREAD_UNCHANGED)
-    img2 = cv2.imread(img_baja, cv2.IMREAD_UNCHANGED)
+    if blackwhite:
+        img = cv2.imread(img_alta, cv2.IMREAD_GRAYSCALE)
+        img2 = cv2.imread(img_baja, cv2.IMREAD_GRAYSCALE)
+    else:
+        img = cv2.imread(img_alta, cv2.IMREAD_UNCHANGED)
+        img2 = cv2.imread(img_baja, cv2.IMREAD_UNCHANGED)
     # para quedarnos con las frecuencias altas de la imagen, restamos las frecuencias bajas que obtenemos con el
     # filtro gaussiano a la imagen original
     paso_alto = img - my_filter2D(src=img, kernel=my_mascara_alto, borderType='replicate')
     paso_bajo = my_filter2D(src=img2, kernel=my_mascara_bajo, borderType='replicate')
     # para obtener la imagen híbrida, sumamos las dos imágenes.
     if collage:
-        return make_collage([paso_bajo,paso_alto,paso_alto+paso_bajo],["Low","High","Both"],space)
+        # return make_collage([paso_bajo,paso_alto,paso_alto+paso_bajo],["Low","High","Both"],space)
+        return make_collage([paso_bajo, paso_alto, paso_alto + paso_bajo])
     else:
         return paso_alto+paso_bajo
 

@@ -28,7 +28,8 @@ if __name__ == '__main__':
     # cv2.imwrite('memoria/opencv_sigma3.jpg', cv2.filter2D(src=img,ddepth=-1,kernel=cv2.getGaussianKernel(ksize=19, \
     #                                                                 sigma=3),borderType=cv2.BORDER_REPLICATE))
     # cv2.imwrite('memoria/propio_sigma3.jpg', my_filter2D(src=img,kernel=my_getGaussianKernel(sigma=3),borderType='replicate'))
-    cv2.imshow('image', make_collage([img,final_image,my_final_image], ["Original","OpenCV","Propia"]))
+    # cv2.imshow('image', make_collage([img,final_image,my_final_image], ["Original","OpenCV","Propia"]))
+    cv2.imshow('image', make_collage([img, final_image, my_final_image]))
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
@@ -43,7 +44,7 @@ if __name__ == '__main__':
     cv2.waitKey()
     cv2.destroyAllWindows()
     # cv2.imwrite('memoria/birdplane.jpg', birdplane)
-    catdog = hybrid('data/cat.bmp','data/dog.bmp',space=350, sigma_alta=2.5, sigma_baja=5, collage=False)
+    catdog = hybrid('data/cat.bmp','data/dog.bmp',space=350, sigma_alta=2.5, sigma_baja=5, blackwhite=True, collage=False)
     cv2.imshow('imagen',catdog)
     cv2.waitKey()
     cv2.destroyAllWindows()
@@ -55,7 +56,7 @@ if __name__ == '__main__':
     cv2.imshow('image',gatito)
     cv2.waitKey()
     cv2.destroyAllWindows()
-    # cv2.imwrite('memoria/piramide_gato.jpg',gatito)
+    # # cv2.imwrite('memoria/piramide_gato.jpg',gatito)
     piramide_catdog = piramide_gaussiana(catdog, 5)
     cv2.imshow('image', piramide_catdog)
     cv2.waitKey()

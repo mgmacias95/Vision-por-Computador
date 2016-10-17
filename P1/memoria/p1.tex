@@ -50,6 +50,10 @@
 
 \tableofcontents
 
+\section{Opción desarrollada}
+
+Antes de empezar la práctica, aclarar que he escogido la \textbf{opción 1}.
+
 \section{Convolución de una imagen con una máscara}
 \subsection{Cálculo del vector máscara}
 
@@ -92,7 +96,7 @@ Y, por último, la función normaliza los valores obtenidos para que la suma tot
 \subsection{Convolución 2D con un filtro Gaussiano}
 \subsubsection{Convolución 1D de dos vectores}
 
-En el caso de la gaussiana, la correlación y la convolución obtienen el mismo resultado. Aprovechando esta propiedad, se ha implementado sólo la correlación.
+En el caso de la gaussiana, la correlación y la convolución obtienen el mismo resultado. Aprovechando esta propiedad, se ha implementado sólo la correlación. Esta función se utiliza más adelante, en la función que hace la convolución 2D con una gaussiana (\hyperref[sec:conv2D]{Sección \ref*{sec:conv2D}}).
 
 \begin{minted}[frame=lines, label={Correlación de dos vectores 1D}]{python}
 # Función para aplicar el kernel a un trocito de imagen
@@ -103,7 +107,7 @@ Gracias a la librería \texttt{numpy} de python y a las funciones $\lambda$ pode
 
 \subsubsection{Relleno de los extemos de la imagen usando distintos criterios de borde}
 
-Para poder elegir distintos tipos de borde, se ha implementado una función "interfaz" que aplica el tipo de borde que escojamos.
+Para poder elegir distintos tipos de borde, se ha implementado una función ``interfaz'' que aplica el tipo de borde que escojamos.
 
 \begin{minted}[frame=lines, label={Añadir borde a una imagen}]{python}
 # Función para añadir borde a una imagen
@@ -120,7 +124,7 @@ def my_copyMakeBorder(src, space, borderType):
 Se han implementado los mismos tipos de bordes que implementa \textit{OpenCV}:
 
 \begin{enumerate}[$\qquad\bullet$]
-\item \textbf{Constante}: aplica un borde negro a la imagen. En la \hyperref[black]{Figura \ref*{black}} vemos el resultado de aplicar este tipo de borde a una imagen.
+\item \textbf{Constante}: aplica un borde negro a la imagen. En la \hyperref[black]{Figura \ref*{black}} vemos el resultado de aplicar este tipo de borde a una imagen. Para ello, aumenta el tamaño de cada fila y cada columna en $k$ (siendo $k$ el tamaño de la máscara menos 1) y añade en el centro la imagen. Esta función es bastante importante, porque es sobre la que están basadas el resto de funciones de borde.
 
 \begin{minted}[frame=lines, label={Borde negro}]{python}
 # Función para darle a la imagen un borde negro 
@@ -146,7 +150,7 @@ def black_border(src, space):
     \label{black}
 \end{figure}
 
-\item \textbf{Replicado}: copia el último pixel. En la \hyperref[replicate]{Figura \ref*{replicate}} vemos el resultado de aplicar este tipo de borde a una imagen.
+\item \textbf{Replicado}: copia el último pixel de cada fila/columna. En la \hyperref[replicate]{Figura \ref*{replicate}} vemos el resultado de aplicar este tipo de borde a una imagen. Para ello, aplica un borde negro a la imagen, usando la función \texttt{black\_border} y una vez hecho eso, rellena dicho borde negro con dos bucles \texttt{for}: uno para copiar el primer y último píxel por filas y otro para hacerlo por columnas.
 
 \begin{minted}[frame=lines, label={Borde replicado}]{python}
 # Función para darle a la imagen un borde 
@@ -174,112 +178,117 @@ def replicate_border(src, space):
     \label{replicate}
 \end{figure}
 
-\item \textbf{Reflejado}: refleja en el borde los últimos píxeles de la imagen. En la \hyperref[reflect]{Figura \ref*{reflect}} vemos el resultado de aplicar este tipo de borde a una imagen.
+\item El resto de bordes que implementa \textit{OpenCV} (reflejado, reflejado 101 y envuelto) se implementan de la misma forma que éste último y por eso no han sido incluidos en esta memoria.
 
-\begin{minted}[frame=lines, label={Borde reflejado}]{python}
-# Función para reflejar la imagen
-# BORDER_REFLECT: fedcba | abcdefgh | hgfedcb
-def reflect_border(src,space):
-    # le añadimos un borde negro a la imagen
-    img_borde = black_border(src,space)
-    # cambiamos ese borde negro por copias de los space primeros píxeles 
-    # de la imagen
-    dims = src.shape
-    for fila in range(dims[0]):
-        to_copy_left = np.array(src[fila, 0:space])
-        img_borde[space + fila, 0:space] = to_copy_left[::-1]
-        to_copy_right = src[fila, dims[1]-space-1:dims[1] - 1]
-        img_borde[space + fila, dims[1] + space:dims[1] + 2 * space] = \
-        to_copy_right[::-1]
-
-    for columna in range(dims[1]):
-        to_copy_left = np.array(src[0:space, columna])
-        img_borde[0:space, columna + space] = to_copy_left[::-1]
-        to_copy_right = np.array(src[dims[0]-space-1:dims[0] - 1, columna])
-        img_borde[dims[0] + space:dims[0] + 2 * space, space + columna] = \
-        to_copy_right[::-1]
-    return img_borde
-\end{minted}
-
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.7\textwidth]{borde_reflejado}
-    \caption{Resultado de aplicar la función \texttt{reflect\_border} sobre una imagen}
-    \label{reflect}
-\end{figure}
-
-\item \textbf{Reflejado 101}: igual que la anterior, pero empieza a reflejar desde el penúltimo píxel. En la \hyperref[reflect101]{Figura \ref*{reflect101}} vemos el resultado de aplicar este tipo de borde a una imagen.
-
-\begin{minted}[frame=lines, label={Borde reflejado 101}]{python}
-# Función para reflejar la imagen
-# BORDER_REFLECT_101: gfedcb | abcdefgh| gfedcba
-def reflect_101_border(src,space):
-    # le añadimos un borde negro a la imagen
-    img_borde = black_border(src,space)
-    # cambiamos ese borde por los space+1 primeros píxeles de 
-    # la imagen, sin contar el primero de todos
-    dims = src.shape
-    for fila in range(dims[0]):
-        to_copy_left = np.array(src[fila, 1:space+1])
-        img_borde[space + fila, 0:space] = to_copy_left[::-1]
-        to_copy_right = src[fila, dims[1]-space-2:dims[1] - 2]
-        img_borde[space + fila, dims[1] + space:dims[1] + 2 * space] = \
-        to_copy_right[::-1]
-
-    for columna in range(dims[1]):
-        to_copy_left = np.array(src[1:space+1, columna])
-        img_borde[0:space, columna + space] = to_copy_left[::-1]
-        to_copy_right = np.array(src[dims[0]-space-2:dims[0] - 2, columna])
-        img_borde[dims[0] + space:dims[0] + 2 * space, space + columna] = \
-        to_copy_right[::-1]
-    return img_borde
-\end{minted}
-
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.7\textwidth]{borde_reflejado101}
-    \caption{Resultado de aplicar la función \texttt{reflect\_101\_border} sobre una imagen}
-    \label{reflect101}
-\end{figure}
-
-\item \textbf{Envuelto}: refleja los últimos píxeles del lado contrario. En la \hyperref[wrap]{Figura \ref*{wrap}} vemos el resultado de aplicar este tipo de borde a una imagen.
-
-\begin{minted}[frame=lines, label={Borde envuelto}]{python}
-# Función que continua el borde que la imagen deja por el lado contrario
-# BORDER_WRAP: cdefgh | abcdefgh | abcdefg
-def wrap_border(src,space):
-    # le añadimos un borde negro a la imagen
-    img_borde = black_border(src, space)
-    # cambiamos ese borde negro por copias de los space primeros 
-    # píxeles de la imagen
-    dims = src.shape
-    for fila in range(dims[0]):
-        to_copy_left = np.array(src[fila, 0:space])
-        to_copy_right = src[fila, dims[1] - space - 1:dims[1] - 1]
-        img_borde[space + fila, 0:space] = to_copy_right[::-1]
-        img_borde[space + fila, dims[1] + space:dims[1] + 2 * space] = \
-        to_copy_left[::-1]
-
-    for columna in range(dims[1]):
-        to_copy_left = np.array(src[0:space, columna])
-        to_copy_right = np.array(src[dims[0] - space - 1:dims[0] - 1, columna])
-        img_borde[0:space, columna + space] = to_copy_right[::-1]
-        img_borde[dims[0] + space:dims[0] + 2 * space, space + columna] = \
-        to_copy_left[::-1]
-    return img_borde
-\end{minted}
-
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.7\textwidth]{borde_wrap}
-    \caption{Resultado de aplicar la función \texttt{wrap\_border} sobre una imagen}
-    \label{wrap}
-\end{figure}
 \end{enumerate}
+
+% \item \textbf{Reflejado}: refleja en el borde los últimos píxeles de la imagen. En la \hyperref[reflect]{Figura \ref*{reflect}} vemos el resultado de aplicar este tipo de borde a una imagen. 
+
+% \begin{minted}[frame=lines, label={Borde reflejado}]{python}
+% # Función para reflejar la imagen
+% # BORDER_REFLECT: fedcba | abcdefgh | hgfedcb
+% def reflect_border(src,space):
+%     # le añadimos un borde negro a la imagen
+%     img_borde = black_border(src,space)
+%     # cambiamos ese borde negro por copias de los space primeros píxeles 
+%     # de la imagen
+%     dims = src.shape
+%     for fila in range(dims[0]):
+%         to_copy_left = np.array(src[fila, 0:space])
+%         img_borde[space + fila, 0:space] = to_copy_left[::-1]
+%         to_copy_right = src[fila, dims[1]-space-1:dims[1] - 1]
+%         img_borde[space + fila, dims[1] + space:dims[1] + 2 * space] = \
+%         to_copy_right[::-1]
+
+%     for columna in range(dims[1]):
+%         to_copy_left = np.array(src[0:space, columna])
+%         img_borde[0:space, columna + space] = to_copy_left[::-1]
+%         to_copy_right = np.array(src[dims[0]-space-1:dims[0] - 1, columna])
+%         img_borde[dims[0] + space:dims[0] + 2 * space, space + columna] = \
+%         to_copy_right[::-1]
+%     return img_borde
+% \end{minted}
+
+% \begin{figure}[!h]
+%     \centering
+%     \includegraphics[width=0.7\textwidth]{borde_reflejado}
+%     \caption{Resultado de aplicar la función \texttt{reflect\_border} sobre una imagen}
+%     \label{reflect}
+% \end{figure}
+
+% \item \textbf{Reflejado 101}: igual que la anterior, pero empieza a reflejar desde el penúltimo píxel. En la \hyperref[reflect101]{Figura \ref*{reflect101}} vemos el resultado de aplicar este tipo de borde a una imagen.
+
+% \begin{minted}[frame=lines, label={Borde reflejado 101}]{python}
+% # Función para reflejar la imagen
+% # BORDER_REFLECT_101: gfedcb | abcdefgh| gfedcba
+% def reflect_101_border(src,space):
+%     # le añadimos un borde negro a la imagen
+%     img_borde = black_border(src,space)
+%     # cambiamos ese borde por los space+1 primeros píxeles de 
+%     # la imagen, sin contar el primero de todos
+%     dims = src.shape
+%     for fila in range(dims[0]):
+%         to_copy_left = np.array(src[fila, 1:space+1])
+%         img_borde[space + fila, 0:space] = to_copy_left[::-1]
+%         to_copy_right = src[fila, dims[1]-space-2:dims[1] - 2]
+%         img_borde[space + fila, dims[1] + space:dims[1] + 2 * space] = \
+%         to_copy_right[::-1]
+
+%     for columna in range(dims[1]):
+%         to_copy_left = np.array(src[1:space+1, columna])
+%         img_borde[0:space, columna + space] = to_copy_left[::-1]
+%         to_copy_right = np.array(src[dims[0]-space-2:dims[0] - 2, columna])
+%         img_borde[dims[0] + space:dims[0] + 2 * space, space + columna] = \
+%         to_copy_right[::-1]
+%     return img_borde
+% \end{minted}
+
+% \begin{figure}[!h]
+%     \centering
+%     \includegraphics[width=0.7\textwidth]{borde_reflejado101}
+%     \caption{Resultado de aplicar la función \texttt{reflect\_101\_border} sobre una imagen}
+%     \label{reflect101}
+% \end{figure}
+
+% \item \textbf{Envuelto}: refleja los últimos píxeles del lado contrario. En la \hyperref[wrap]{Figura \ref*{wrap}} vemos el resultado de aplicar este tipo de borde a una imagen.
+
+% \begin{minted}[frame=lines, label={Borde envuelto}]{python}
+% # Función que continua el borde que la imagen deja por el lado contrario
+% # BORDER_WRAP: cdefgh | abcdefgh | abcdefg
+% def wrap_border(src,space):
+%     # le añadimos un borde negro a la imagen
+%     img_borde = black_border(src, space)
+%     # cambiamos ese borde negro por copias de los space primeros 
+%     # píxeles de la imagen
+%     dims = src.shape
+%     for fila in range(dims[0]):
+%         to_copy_left = np.array(src[fila, 0:space])
+%         to_copy_right = src[fila, dims[1] - space - 1:dims[1] - 1]
+%         img_borde[space + fila, 0:space] = to_copy_right[::-1]
+%         img_borde[space + fila, dims[1] + space:dims[1] + 2 * space] = \
+%         to_copy_left[::-1]
+
+%     for columna in range(dims[1]):
+%         to_copy_left = np.array(src[0:space, columna])
+%         to_copy_right = np.array(src[dims[0] - space - 1:dims[0] - 1, columna])
+%         img_borde[0:space, columna + space] = to_copy_right[::-1]
+%         img_borde[dims[0] + space:dims[0] + 2 * space, space + columna] = \
+%         to_copy_left[::-1]
+%     return img_borde
+% \end{minted}
+
+% \begin{figure}[!h]
+%     \centering
+%     \includegraphics[width=0.7\textwidth]{borde_wrap}
+%     \caption{Resultado de aplicar la función \texttt{wrap\_border} sobre una imagen}
+%     \label{wrap}
+% \end{figure}
+% \end{enumerate}
 
 Como se aprecia, no se aplica el borde a los píxeles de las esquinas. Este detalle se ha obviado debido a que las esquinas no influyen en el cálculo de la convolución de la imagen.
 
-\subsubsection{Aplicar las funciones anteriores a una imagen separando canales si fuese necesario}
+
+\subsubsection{Aplicar las funciones anteriores a una imagen separando canales si fuese necesario}\label{sec:conv2D}
 
 Se han desarrollado dos funciones: \texttt{my\_filter2D} y \texttt{my\_filter2D\_onechannel}. La primera función sirve como interfaz de la segunda.
 
@@ -301,7 +310,11 @@ def my_filter2D(src, kernel, borderType):
         img = my_filter2D_onechannel(src=src, kernel=kernel, \
             borderType=borderType)
     return img
+\end{minted}
 
+La función \texttt{my\_filter2D} comprueba en primer lugar si la imagen es en color o en blanco y negro. Para ello, comprueba el tamaño del atributo \texttt{shape} de la imagen de entrada. A continuación, si la imagen resulta ser en color, separa sus canales usando la función \texttt{split} de \textit{OpenCV} y aplica el filtro gaussiano sobre cada canal. Por último, una vez aplicado el filtro sobre cada canal, se vuelven a juntar en una sola imagen usando la función \texttt{merge} de \textit{OpenCV}. Si la imagen resulta ser en blanco y negro, se le aplica directamente el filtro.
+
+\begin{minted}[frame=lines,label={Convolución 2D en blanco y negro}]{python}
 # Función para aplicar la máscara 1D a un canal de la imagen
 def my_filter2D_onechannel(src, kernel, borderType):
     mitad_mascara = floor(kernel.size/2)
@@ -325,11 +338,9 @@ def my_filter2D_onechannel(src, kernel, borderType):
     return img_bordes[mitad_mascara:-mitad_mascara, mitad_mascara:-mitad_mascara]
 \end{minted}
 
-La función \texttt{my\_filter2D} comprueba en primer lugar si la imagen es en color o en blanco y negro. Para ello, comprueba el tamaño del atributo \texttt{shape} de la imagen de entrada. A continuación, si la imagen resulta ser en color, separa sus canales usando la función \texttt{split} de \textit{OpenCV} y aplica el filtro gaussiano sobre cada canal. Por último, una vez aplicado el filtro sobre cada canal, se vuelven a juntar en una sola imagen usando la función \texttt{merge} de \textit{OpenCV}. Si la imagen resulta ser en blanco y negro, se le aplica directamente el filtro.
+La función \texttt{my\_filter2D\_onechannel} es la que aplica el filtro sobre un único canal. Para ello, calcula en primer lugar la mitad del tamaño de la máscara para saber el espacio que tiene que dejar en cada borde la imagen. Tras esto, aplica un borde (especificado por parámetro) a la imagen. Usando la imagen con bordes, empezamos a aplicar el filtro a la imagen usando la función \texttt{apply\_kernel}, \textbf{primero por filas y después por columnas}. Me ha parecido mejor hacerlo así en vez de hacerlo en una función a parte y trasponer la imagen por cuestiones de eficiencia. Es importante destarcar que el filtro debe aplicarse sobre una imagen copia auxiliar para no arrastrar el filtro a lo largo de toda la imagen.
 
-La función \texttt{my\_filter2D\_onechannel} es la que aplica el filtro sobre un único canal. Para ello, calcula en primer lugar la mitad del tamaño de la máscara para saber el espacio que tiene que dejar en cada borde la imagen. Tras esto, aplica un borde (especificado por parámetro) a la imagen. Usando la imagen con bordes, empezamos a aplicar el filtro a la imagen usando la función \texttt{apply\_kernel}, primero por filas y después por columnas. Es importante destarcar que el filtro debe aplicarse sobre una imagen copia auxiliar para no arrastrar el filtro a lo largo de toda la imagen.
-
-En \hyperref[convolucion]{Figura \ref*{convolucion}} se muesta cómo funciona la función con $\sigma = 1$ y se compara con el resultado que obtiene \textit{OpenCV} con el mismo parámetro. La función desarrollada desenfoca la imagen algo más de lo que hace \textit{OpenCV} pero ambas obtienen un resultado muy similar.
+En \hyperref[convolucion]{Figura \ref*{convolucion}} se muesta cómo funciona la función con $\sigma = 1$ y se compara con el resultado que obtiene \textit{OpenCV} con el mismo parámetro. En comparación con \textit{OpenCV}, me da la sensación de que \textit{OpenCV} sólo aplica la máscara en una dimensión, ya que el desenfoque obtenido con \textit{OpenCV} da la sensación de movimiento vertical. En cambio, el resultado obtenido con la función \texttt{my\_filter2D} sí que da la sensación de un desenfoque ``uniforme''.
 
 \begin{figure}[!h]
     \centering
@@ -363,25 +374,14 @@ En \hyperref[convolucion]{Figura \ref*{convolucion}} se muesta cómo funciona la
 
 Las imágenes híbridas son un efecto óptico en el cual engañamos al ojo haciéndole creer que ve una cosa distinta si mira la imagen de cerca o la mira de lejos. Para ello, mezclamos las \textbf{frecuencias altas} de una imagen con las \textbf{frecuencias bajas} de otra. 
 
-A parte de la función de convolución (\texttt{my\_filter2D}) desarrollada, he hecho dos más: una llamada \texttt{hybrid} que toma como parámetros dos imágenes y los distintos $\sigma$ que aplicar a cada una y otra llamada \texttt{make\_collage} que sirve para hacer un collage a partir de varias imágenes.
+A parte de la función de convolución (\texttt{my\_filter2D}) desarrollada, he hecho dos más: una llamada \texttt{hybrid} que toma como parámetros dos imágenes y los distintos $\sigma$ que aplicar a cada una y otra llamada \texttt{make\_collage} que sirve para hacer un collage a partir de varias imágenes. Ésta última no ha sido incluida en el guión debido a que no tiene ningún aspecto de implementación que destacar.
+
+Para hacer una imagen híbrida, he aplicado a ambas imágenes una máscara de convolución para obtener así las frecuencias bajas de cada una. Para obtener las frecuencias altas, he restado a la imagen original la imagen con las frecuencias bajas. Por último, para obtener la imagen híbrida, he sumado las frecuencias bajas de una imagen con las frecuencias altas de la otra imagen. 
+
+He añadido a la función un parámetro para dejar que el usuario decida si quiere el resultado en forma de collage o no. En el caso de que el usuario quiera el resultado en forma de collage, obtendrá como resultado un collage con las tres imágenes: la imagen con frecuencias bajas, la imagen con frecuencias altas y la híbrida de ambas.
 
 \begin{minted}[frame=lines, label={Funciones para hacer imágenes híbridas}]{python}
-def make_collage(lista_imagenes, lista_texto, space=450):
-    # inicializamos una matriz de 255s con el tamaño deseado
-    if len(lista_imagenes[0].shape) == 3:
-        collage = np.ones((lista_imagenes[0].shape[0]+100, \
-            lista_imagenes[0].shape[1]*3,3), np.uint8)*255
-    else:
-        collage = np.ones((lista_imagenes[0].shape[0]+100, \
-            lista_imagenes[0].shape[1]*3), np.uint8)*255
-    dims = lista_imagenes[0].shape
-    for i in range(len(lista_imagenes)):
-        collage[0:dims[0], i*dims[1]:dims[1]*(1+i)] = lista_imagenes[i]
-        cv2.putText(img=collage, text=lista_texto[i], org=(25+(space*i),\
-            dims[0]+70), fontFace=cv2.FONT_HERSHEY_SIMPLEX,fontScale=3, color=0)
-    return collage
-
-def hybrid(img_alta,img_baja,space=210,sigma_alta=1.5,sigma_baja=3.5,collage=True):
+def hybrid(img_alta,img_baja,space=210,sigma_alta=1.5,sigma_baja=4.5,collage=True):
     # obtenemos las máscara respectivas para cada imagen
     my_mascara_alto = my_getGaussianKernel(sigma=sigma_alta)
     my_mascara_bajo = my_getGaussianKernel(sigma=sigma_baja)
