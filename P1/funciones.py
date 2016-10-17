@@ -180,7 +180,8 @@ def make_collage(lista_imagenes):
 
     return collage
 
-def hybrid(img_alta, img_baja, space=210, sigma_alta=1.5, sigma_baja=4, blackwhite = False, collage = True):
+# def hybrid(img_alta, img_baja, space=210, sigma_alta=1.5, sigma_baja=4, blackwhite = False, collage = True):
+def hybrid(img_alta, img_baja, sigma_alta=1.5, sigma_baja=4, blackwhite=False, collage=True):
     # obtenemos las máscara respectivas para cada imagen
     my_mascara_alto = my_getGaussianKernel(sigma=sigma_alta)
     my_mascara_bajo = my_getGaussianKernel(sigma=sigma_baja)
