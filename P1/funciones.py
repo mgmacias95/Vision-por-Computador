@@ -15,6 +15,11 @@ import cv2
 # función gaussiana para la máscara
 kernel = lambda x, sigma: exp(-0.5 * ((x*x)/(sigma*sigma)))
 
+def mostrar(imagen):
+    cv2.imshow('image', imagen.astype(np.uint8))
+    cv2.waitKey()
+    cv2.destroyAllWindows()
+
 # Función para calcular la máscara/kernel
 def my_getGaussianKernel(sigma):
     # El tamaño de la máscara depende de sigma. Aplicando la estadística báisca,
@@ -144,10 +149,10 @@ def my_filter2D(src, kernel, borderType):
 def my_filter2D_onechannel(src, kernel, borderType):
     mitad_mascara = floor(kernel.size/2)
     # En primer lugar, añadimos bordes a la imagen
-    img_bordes = my_copyMakeBorder(src=src, space=mitad_mascara, borderType=borderType)
+    img_bordes = my_copyMakeBorder(src=src, space=mitad_mascara, borderType=borderType).astype(np.float64)
     # img_bordes = cv2.copyMakeBorder(src=src, top=mitad_mascara, bottom=mitad_mascara, left=mitad_mascara,
     #                                 right=mitad_mascara, borderType=borderType)
-    img_aux = np.ones(img_bordes.shape, np.uint8)*255
+    img_aux = np.ones(img_bordes.shape, np.float64)*255
     # Después, aplicamos el kernel a cada trocito
     for j in range(mitad_mascara, img_bordes.shape[0]-mitad_mascara):
         for i in range(mitad_mascara,img_bordes.shape[1]-mitad_mascara):
@@ -187,11 +192,11 @@ def hybrid(img_alta, img_baja, sigma_alta=1.5, sigma_baja=4, blackwhite=False, c
     my_mascara_bajo = my_getGaussianKernel(sigma=sigma_baja)
     # leemos las dos imágenes que vamos a mezclar
     if blackwhite:
-        img = cv2.imread(img_alta, cv2.IMREAD_GRAYSCALE)
-        img2 = cv2.imread(img_baja, cv2.IMREAD_GRAYSCALE)
+        img = cv2.imread(img_alta, cv2.IMREAD_GRAYSCALE).astype(np.float64)
+        img2 = cv2.imread(img_baja, cv2.IMREAD_GRAYSCALE).astype(np.float64)
     else:
-        img = cv2.imread(img_alta, cv2.IMREAD_UNCHANGED)
-        img2 = cv2.imread(img_baja, cv2.IMREAD_UNCHANGED)
+        img = cv2.imread(img_alta, cv2.IMREAD_UNCHANGED).astype(np.float64)
+        img2 = cv2.imread(img_baja, cv2.IMREAD_UNCHANGED).astype(np.float64)
     # para quedarnos con las frecuencias altas de la imagen, restamos las frecuencias bajas que obtenemos con el
     # filtro gaussiano a la imagen original
     paso_alto = img - my_filter2D(src=img, kernel=my_mascara_alto, borderType='replicate')
