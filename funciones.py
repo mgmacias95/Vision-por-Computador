@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ########################################################################################################################
-# Práctica 1 - Visión por computador - Universidad de Granada
+# Visión por computador - Universidad de Granada
 # Curso 2016/2017
 # Alumna: Marta Gómez Macías
 # Profesor: Nicolás Perez de la Blanca Capilla
