@@ -220,31 +220,42 @@ def resize(img, scale):
     return img_little
 
 # Función para hacer un collage tipo pirámide gaussiana
-def piramide_gaussiana(img, scale=5):
+def piramide_gaussiana(img, scale=5, return_canvas=True):
     # el tamaño del canvas debe ser ancho_img_original + 0.5*ancho_img_original x altura_img_original
-    dims = img.shape
-    if len(dims) == 3:
-        piramide = np.ones((dims[0],dims[1]+floor(dims[1] * 0.5),3),np.uint8)*255
-    else:
-        piramide = np.ones((dims[0], dims[1] + floor(dims[1] * 0.5)),np.uint8) * 255
-
-    # colocamos la primera imagen en tamaño original
-    piramide[0:dims[0],0:dims[1]] = img
-    # calculamos el lugar donde poner la segunda
-    start_height = 0
-    end_height = ceil(dims[0]/2)
-    start_width = dims[1]   # este lugar será igual para todas las imágenes
-    start_width -= 1
     little = img
+    if return_canvas:
+        dims = img.shape
+        if len(dims) == 3:
+            piramide = np.ones((dims[0],dims[1]+floor(dims[1] * 0.5),3),np.uint8)*255
+        else:
+            piramide = np.ones((dims[0], dims[1] + floor(dims[1] * 0.5)),np.uint8) * 255
+
+        # colocamos la primera imagen en tamaño original
+        piramide[0:dims[0],0:dims[1]] = little
+        # calculamos el lugar donde poner la segunda
+        start_height = 0
+        end_height = ceil(dims[0]/2)
+        start_width = dims[1]   # este lugar será igual para todas las imágenes
+        start_width -= 1
+    else:
+        pyramid_list = np.array([0]*scale)
+        pyramid_list[0] = little
+
     for i in range(2,scale+1):
         # calculamos la i-esima imagen
         little = resize(img=little, scale=2)
         # guardamos sus medidas
         dims = little.shape
-        # la colocamos en el sitio calculado
-        piramide[start_height:end_height,start_width:start_width+dims[1]] = little
-        # calculamos dónde colocar la siguiente imagen
-        start_height = end_height
-        end_height = ceil(dims[0]/2) + start_height
+        if return_canvas:
+            # la colocamos en el sitio calculado
+            piramide[start_height:end_height,start_width:start_width+dims[1]] = little
+            # calculamos dónde colocar la siguiente imagen
+            start_height = end_height
+            end_height = ceil(dims[0]/2) + start_height
+        else:
+            pyramid_list[i-1] = little
 
-    return piramide
+    if return_canvas:
+        return piramide
+    else:
+        return pyramid_list

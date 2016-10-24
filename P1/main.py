@@ -47,7 +47,7 @@ if __name__ == '__main__':
     img_c = cv2.imread('data/cat.bmp',cv2.IMREAD_UNCHANGED)
     gatito = piramide_gaussiana(img_c,5)
     mostrar(gatito)
-    # # cv2.imwrite('memoria/piramide_gato.jpg',gatito)
+    # cv2.imwrite('memoria/piramide_gato.jpg',gatito)
     piramide_catdog = piramide_gaussiana(catdog, 5)
     mostrar(piramide_catdog)
     # cv2.imwrite('memoria/piramide_catdog.jpg', piramide_catdog)
