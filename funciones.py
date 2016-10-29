@@ -260,6 +260,8 @@ def piramide_gaussiana(img, scale=5, sigma=2, return_canvas=True):
     else:
         return pyramid_list
 
+criterio_harris = lambda lambda1, lambda2, k=0.04: lambda1*lambda2 - k*((lambda1+lambda2)**2)
+
 def Harris(img, scale = 3):
     # hacemos una pirámide gaussiana con escala 3 de la imagen.
     lista_escalas = piramide_gaussiana(img=img, scale=scale, sigma=1, return_canvas=False)
@@ -270,8 +272,13 @@ def Harris(img, scale = 3):
     #       * x1, y1 son los autovectores de lambda1
     #       * x2, y2 son los autovectores de lambda2
     scale_eigenvalues = [] # lista de matrices en el que guardar resultados
-    i = 0 # indice para acceder a las posiciones del vector
     for escala in lista_escalas:
-        scale_eigenvalues.append(cv2.cornerEigenValsAndVecs(src=img, blockSize=3, ksize=3))
+        scale_eigenvalues.append(cv2.cornerEigenValsAndVecs(src=escala, blockSize=3, ksize=3))
 
-    return scale_eigenvalues
+    # una vez tenemos los autovalores de cada imagen, creamos una matriz por cada escala con el criterio de harris
+    matrices_harris = [] # lista de matrices para guardar las matrices del criterio de harris para cada escala
+    for escala in scale_eigenvalues:
+        canales = cv2.split(escala) # cornerEigenValsAndVecs devuelve una imagen con seis canales.
+        matrices_harris.append(criterio_harris(lambda1 = canales[0], lambda2 = canales[1]))
+
+    return matrices_harris
