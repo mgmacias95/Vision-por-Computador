@@ -209,10 +209,10 @@ def hybrid(img_alta, img_baja, sigma_alta=1.5, sigma_baja=4, blackwhite=False, c
         return paso_alto+paso_bajo
 
 # Función para redimensionar una imagen 1/scala de su tamaño.
-def resize(img, scale):
+def resize(img, scale, sigma=2):
     # Para hacer un buen redimensionado. Debemos primero aplicar un filtro gaussiano a la imagen y después quedarnos con
     # las filas/columnas %scale. Por ejemplo si scale=2, sólo nos quedaríamos con las pares (una sí, una no, ....).
-    img_blur = my_filter2D(src=img, kernel=my_getGaussianKernel(scale/2),borderType='replicate')
+    img_blur = my_filter2D(src=img, kernel=my_getGaussianKernel(sigma),borderType='replicate')
     # una vez desenfocada la imagen, creamos una nueva imagen para guardarla y nos quedamos con las filas/columnas %scale
     img_little = img_blur[range(0,img_blur.shape[0],scale)]
     img_little = img_little[:,range(0,img_blur.shape[1],scale)]
@@ -220,7 +220,7 @@ def resize(img, scale):
     return img_little
 
 # Función para hacer un collage tipo pirámide gaussiana
-def piramide_gaussiana(img, scale=5, return_canvas=True):
+def piramide_gaussiana(img, scale=5, sigma=2, return_canvas=True):
     # el tamaño del canvas debe ser ancho_img_original + 0.5*ancho_img_original x altura_img_original
     little = img
     if return_canvas:
@@ -238,12 +238,12 @@ def piramide_gaussiana(img, scale=5, return_canvas=True):
         start_width = dims[1]   # este lugar será igual para todas las imágenes
         start_width -= 1
     else:
-        pyramid_list = np.array([0]*scale)
-        pyramid_list[0] = little
+        pyramid_list = []
+        pyramid_list.append(little)
 
     for i in range(2,scale+1):
         # calculamos la i-esima imagen
-        little = resize(img=little, scale=2)
+        little = resize(img=little, scale=2, sigma=sigma)
         # guardamos sus medidas
         dims = little.shape
         if return_canvas:
@@ -253,9 +253,25 @@ def piramide_gaussiana(img, scale=5, return_canvas=True):
             start_height = end_height
             end_height = ceil(dims[0]/2) + start_height
         else:
-            pyramid_list[i-1] = little
+            pyramid_list.append(little)
 
     if return_canvas:
         return piramide
     else:
         return pyramid_list
+
+def Harris(img, scale = 3):
+    # hacemos una pirámide gaussiana con escala 3 de la imagen.
+    lista_escalas = piramide_gaussiana(img=img, scale=scale, sigma=1, return_canvas=False)
+    # y para cada escala, usamos la función de OpenCV "cornerEigenValsAndVecs" para extraer los mapas de
+    # auto-valores de la matriz Harris en cada píxel. Debemos tener en cuenta que esta función devuelve
+    # 6 matrices (lambda1, lambda2, x1, y1, x2, y2) donde:
+    #       * lambda1, lambda2 son los autovalores de M no ordenados
+    #       * x1, y1 son los autovectores de lambda1
+    #       * x2, y2 son los autovectores de lambda2
+    scale_eigenvalues = [] # lista de matrices en el que guardar resultados
+    i = 0 # indice para acceder a las posiciones del vector
+    for escala in lista_escalas:
+        scale_eigenvalues.append(cv2.cornerEigenValsAndVecs(src=img, blockSize=3, ksize=3))
+
+    return scale_eigenvalues

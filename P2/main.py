@@ -10,3 +10,7 @@
 
 import cv2
 from funciones import *
+
+if __name__ == '__main__':
+    img = cv2.imread('datos-T2/yosemite/Yosemite1.jpg', cv2.IMREAD_GRAYSCALE)
+    print(Harris(img=img)[0])
