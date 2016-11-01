@@ -260,9 +260,24 @@ def piramide_gaussiana(img, scale=5, sigma=2, return_canvas=True):
     else:
         return pyramid_list
 
+# Función que implementa el criterio de Harris: det(M) - k * trace(M)
+# este criterio también se puede expresar como: lamba1*lambda2 / (lambda1+lambda2)^2 = det(M)/trace(M)^2
 criterio_harris = lambda lambda1, lambda2, k=0.04: lambda1*lambda2 - k*((lambda1+lambda2)**2)
 
-def Harris(img, scale = 3):
+# función que tomando como entrada los valores de un entorno nos indica si el valor del centro es máximo local.
+# Estamos presuponiendo una ventana 2D con un número impar de dimensiones (3x3, 5x5, etc)
+is_localmax_center = lambda entorno: np.argmax(entorno) == entorno.item((entorno.shape[0]*entorno.shape[1])/2)
+
+# función que dada una imagen binaria inicializada a 255 sea capaz de modificar a 0 todos los píxeles
+# de un rectángulo dado. rect es una tupla (x_1:x_2, y_1:y_2)
+def put_zero(img, rect):
+    img[rect[0]:rect[1], rect[2]:rect[3]] = 0
+
+# función que dada una matriz de harris y un umbral, devuelve una imagen binaria donde los puntos blancos son los que
+# superan dicho umbral
+binary_harris = lambda matriz, umbral = 0: (matriz < umbral) * 255
+
+def Harris(img, window_size = (3,3), umbral=6, scale = 3):
     # hacemos una pirámide gaussiana con escala 3 de la imagen.
     lista_escalas = piramide_gaussiana(img=img, scale=scale, sigma=1, return_canvas=False)
     # y para cada escala, usamos la función de OpenCV "cornerEigenValsAndVecs" para extraer los mapas de
@@ -281,4 +296,14 @@ def Harris(img, scale = 3):
         canales = cv2.split(escala) # cornerEigenValsAndVecs devuelve una imagen con seis canales.
         matrices_harris.append(criterio_harris(lambda1 = canales[0], lambda2 = canales[1]))
 
-    return matrices_harris
+    # inicializamos una lista de imágenes binarias a 255. Una por escala.
+    binaria = [binary_harris(escala) for escala in matrices_harris]
+
+    # Fijar un tamaño de entorno/ventana y recorrer la imagen de valores Harris con dicha ventana preguntando,
+    # en cada posición de valor 1 de la imagen binaria, si el valor Harris es máximo local; en caso negativo poner
+    # a cero dicho píxel en la imagen binaria; e) en caso afirmativo, poner a cero en la imagen binaria todos los
+    # píxeles del entorno (menos el central); los píxeles que queden con valor 255 son los píxeles seleccionados.
+
+
+
+    return binaria
