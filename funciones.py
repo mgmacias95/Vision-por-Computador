@@ -267,22 +267,11 @@ criterio_harris = lambda lambda1, lambda2, k=0.04: lambda1*lambda2 - k*((lambda1
 # función que tomando como entrada los valores de un entorno nos indica si el valor del centro es máximo local.
 # Estamos presuponiendo una ventana 2D con un número impar de dimensiones (3x3, 5x5, etc)
 is_localmax_center = lambda entorno: np.argmax(entorno) == floor((entorno.shape[0]*entorno.shape[1])/2)
-# def get_localmax(entorno):
-#     max = np.argmin(entorno)
-#     col = max if max < entorno.shape[1] else max % entorno.shape[1]
-#     row = max // entorno.shape[0]
-#     return (row, col)
 
 # función que pone en negro todos los píxeles de un entorno menos el central
 def put_zero_least_center(img, window_size, i, j):
     img[i-window_size:i+window_size+1, j-window_size:j+window_size+1] = 0
-    # el argumento max está calculado tomando sólo la ventana, por lo que debemos modificarlo para que sus coordenadas
-    # se correspondan con la imagen. En teoría, j=1, i=1 por lo que tenemos que sumar el tamaño de la ventana por la fila
-    # y columna en la que nos encontremos.
-    # maxrow = max[0] if i < 2*window_size + 1  else max[0] + (2*window_size+1) * floor(i / (2*window_size + 1))
-    # maxcol = max[1] if j < 2*window_size + 1 else max[1] + (2*window_size+1) * floor(j / (2*window_size + 1))
     img[i,j] = 255
-    # print(img[i-window_size:i+window_size+1, j-window_size:j+window_size+1])
 
 # función que dada una matriz de harris y un umbral, devuelve una imagen binaria donde los puntos blancos son los que
 # superan dicho umbral

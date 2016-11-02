@@ -13,4 +13,7 @@ from funciones import *
 
 if __name__ == '__main__':
     img = cv2.imread('datos-T2/Tablero1.jpg', cv2.IMREAD_GRAYSCALE)
-    mostrar(Harris(img=img)[0])
+    harris = Harris(img=img)
+    mostrar(harris[0])
+    mostrar(harris[1])
+    mostrar(harris[2])
