@@ -266,18 +266,29 @@ criterio_harris = lambda lambda1, lambda2, k=0.04: lambda1*lambda2 - k*((lambda1
 
 # función que tomando como entrada los valores de un entorno nos indica si el valor del centro es máximo local.
 # Estamos presuponiendo una ventana 2D con un número impar de dimensiones (3x3, 5x5, etc)
-is_localmax_center = lambda entorno: np.argmax(entorno) == entorno.item((entorno.shape[0]*entorno.shape[1])/2)
+is_localmax_center = lambda entorno: np.argmax(entorno) == floor((entorno.shape[0]*entorno.shape[1])/2)
+# def get_localmax(entorno):
+#     max = np.argmin(entorno)
+#     col = max if max < entorno.shape[1] else max % entorno.shape[1]
+#     row = max // entorno.shape[0]
+#     return (row, col)
 
-# función que dada una imagen binaria inicializada a 255 sea capaz de modificar a 0 todos los píxeles
-# de un rectángulo dado. rect es una tupla (x_1:x_2, y_1:y_2)
-def put_zero(img, rect):
-    img[rect[0]:rect[1], rect[2]:rect[3]] = 0
+# función que pone en negro todos los píxeles de un entorno menos el central
+def put_zero_least_center(img, window_size, i, j):
+    img[i-window_size:i+window_size+1, j-window_size:j+window_size+1] = 0
+    # el argumento max está calculado tomando sólo la ventana, por lo que debemos modificarlo para que sus coordenadas
+    # se correspondan con la imagen. En teoría, j=1, i=1 por lo que tenemos que sumar el tamaño de la ventana por la fila
+    # y columna en la que nos encontremos.
+    # maxrow = max[0] if i < 2*window_size + 1  else max[0] + (2*window_size+1) * floor(i / (2*window_size + 1))
+    # maxcol = max[1] if j < 2*window_size + 1 else max[1] + (2*window_size+1) * floor(j / (2*window_size + 1))
+    img[i,j] = 255
+    # print(img[i-window_size:i+window_size+1, j-window_size:j+window_size+1])
 
 # función que dada una matriz de harris y un umbral, devuelve una imagen binaria donde los puntos blancos son los que
 # superan dicho umbral
-binary_harris = lambda matriz, umbral = 0: (matriz < umbral) * 255
+binary_harris = lambda matriz, umbral: (matriz >= umbral) * 255
 
-def Harris(img, window_size = (3,3), umbral=6, scale = 3):
+def Harris(img, window_size = 1, umbral=0.00001, scale = 3):
     # hacemos una pirámide gaussiana con escala 3 de la imagen.
     lista_escalas = piramide_gaussiana(img=img, scale=scale, sigma=1, return_canvas=False)
     # y para cada escala, usamos la función de OpenCV "cornerEigenValsAndVecs" para extraer los mapas de
@@ -296,14 +307,25 @@ def Harris(img, window_size = (3,3), umbral=6, scale = 3):
         canales = cv2.split(escala) # cornerEigenValsAndVecs devuelve una imagen con seis canales.
         matrices_harris.append(criterio_harris(lambda1 = canales[0], lambda2 = canales[1]))
 
-    # inicializamos una lista de imágenes binarias a 255. Una por escala.
-    binaria = [binary_harris(escala) for escala in matrices_harris]
+    # inicializamos una lista de imágenes binarias a 255 si no supera un determinado umbral y a 255 si lo supera. Una por escala.
+    binaria = [binary_harris(escala, umbral) for escala in matrices_harris]
 
-    # Fijar un tamaño de entorno/ventana y recorrer la imagen de valores Harris con dicha ventana preguntando,
-    # en cada posición de valor 1 de la imagen binaria, si el valor Harris es máximo local; en caso negativo poner
-    # a cero dicho píxel en la imagen binaria; e) en caso afirmativo, poner a cero en la imagen binaria todos los
-    # píxeles del entorno (menos el central); los píxeles que queden con valor 255 son los píxeles seleccionados.
-
-
+    # una vez tenemos nuestra imagen binaria, la recorremos preguntando para cada posición con valor 255 si
+    # su correspondiente valor en la matriz de harris es máximo local o no.
+    for escala in range(len(lista_escalas)):
+        # nos quedamos con los índices que superan el umbral
+        harris_index = np.where(binaria[escala] == 255) # where devuelve un vector con los índices fila y otro con las columnas
+        # una vez tenemos esos indices, comprobamos si el valor de esa posición es máximo local o no
+        for i in range(len(harris_index[0])):
+            row = harris_index[0][i]
+            col = harris_index[1][i]
+            # comprobamos si el pixel row,col de la imagen binaria es máximo local
+            if row >= window_size and col >= window_size and is_localmax_center(matrices_harris[escala]\
+                        [row-window_size:row+window_size+1,col-window_size:col+window_size+1]):
+                # si es máximo local, ponemos en negro a todos los píxeles de su entorno
+                put_zero_least_center(binaria[escala], window_size, row, col)
+            else:
+                # si no lo es, ponemos el píxel a 0
+                binaria[escala][row,col] = 0
 
     return binaria

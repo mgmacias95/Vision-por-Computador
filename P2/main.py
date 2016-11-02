@@ -12,5 +12,5 @@ import cv2
 from funciones import *
 
 if __name__ == '__main__':
-    img = cv2.imread('datos-T2/yosemite/Yosemite1.jpg', cv2.IMREAD_GRAYSCALE)
+    img = cv2.imread('datos-T2/Tablero1.jpg', cv2.IMREAD_GRAYSCALE)
     mostrar(Harris(img=img)[0])
