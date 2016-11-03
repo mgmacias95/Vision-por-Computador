@@ -277,7 +277,7 @@ def put_zero_least_center(img, window_size, i, j):
 # superan dicho umbral
 binary_harris = lambda matriz, umbral: (matriz >= umbral) * 255
 
-def Harris(img, window_size = 1, umbral=0.00001, scale = 3):
+def Harris(img, n_points = 1500, window_size = 1, umbral=0.00001, scale = 3):
     # hacemos una pirámide gaussiana con escala 3 de la imagen.
     lista_escalas = piramide_gaussiana(img=img, scale=scale, sigma=1, return_canvas=False)
     # y para cada escala, usamos la función de OpenCV "cornerEigenValsAndVecs" para extraer los mapas de
@@ -301,7 +301,7 @@ def Harris(img, window_size = 1, umbral=0.00001, scale = 3):
 
     # una vez tenemos nuestra imagen binaria, la recorremos preguntando para cada posición con valor 255 si
     # su correspondiente valor en la matriz de harris es máximo local o no.
-    for escala in range(len(lista_escalas)):
+    for escala in range(scale):
         # nos quedamos con los índices que superan el umbral
         harris_index = np.where(binaria[escala] == 255) # where devuelve un vector con los índices fila y otro con las columnas
         # una vez tenemos esos indices, comprobamos si el valor de esa posición es máximo local o no
@@ -316,5 +316,17 @@ def Harris(img, window_size = 1, umbral=0.00001, scale = 3):
             else:
                 # si no lo es, ponemos el píxel a 0
                 binaria[escala][row,col] = 0
+
+    # una vez tenemos los puntos de Harris eliminando no máximos, los ordenamos por su valor de Harris
+    best_harris = []
+    # 70% en el nivel más bajo de la pirámide, 20 en el siguiente y 10 en el último. n_points en total
+    points_to_keep = [n_points*0.7, n_points*0.2, n_points*0.1]
+    for escala in range(scale):
+        # nos quedamos con los índices que corresponden con puntos de harris
+        harris_index = np.where(binaria[escala] == 255)
+        # y también con el valor de harris de esos puntos
+        harris_points = matrices_harris[escala][harris_index]
+        # para ordenar los puntos, unimos los índices y los puntos en una sola matriz
+        points_and_index = np.dstack((harris_index[0], harris_index[1], harris_points))
 
     return binaria
