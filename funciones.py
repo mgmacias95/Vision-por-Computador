@@ -9,6 +9,7 @@
 ########################################################################################################################
 
 from math import floor, exp, ceil
+from operator import itemgetter
 import numpy as np
 import cv2
 
@@ -277,7 +278,7 @@ def put_zero_least_center(img, window_size, i, j):
 # superan dicho umbral
 binary_harris = lambda matriz, umbral: (matriz >= umbral) * 255
 
-def Harris(img, n_points = 1500, window_size = 1, umbral=0.00001, scale = 3):
+def Harris(img, n_points = 1500, points_to_keep = [0.7, 0.2, 0.1], window_size = 1, umbral=0.00001, scale = 3):
     # hacemos una pirámide gaussiana con escala 3 de la imagen.
     lista_escalas = piramide_gaussiana(img=img, scale=scale, sigma=1, return_canvas=False)
     # y para cada escala, usamos la función de OpenCV "cornerEigenValsAndVecs" para extraer los mapas de
@@ -319,14 +320,16 @@ def Harris(img, n_points = 1500, window_size = 1, umbral=0.00001, scale = 3):
 
     # una vez tenemos los puntos de Harris eliminando no máximos, los ordenamos por su valor de Harris
     best_harris = []
-    # 70% en el nivel más bajo de la pirámide, 20 en el siguiente y 10 en el último. n_points en total
-    points_to_keep = [n_points*0.7, n_points*0.2, n_points*0.1]
     for escala in range(scale):
         # nos quedamos con los índices que corresponden con puntos de harris
         harris_index = np.where(binaria[escala] == 255)
         # y también con el valor de harris de esos puntos
         harris_points = matrices_harris[escala][harris_index]
-        # para ordenar los puntos, unimos los índices y los puntos en una sola matriz
-        points_and_index = np.dstack((harris_index[0], harris_index[1], harris_points))
+        # obtenemos los índices de los puntos del vector harris_points ordenados
+        sorted_indexes = np.argsort(harris_points)
+        # juntamos en una matriz con dos columnas las coordenadas x,y de los puntos y nos quedamos con los
+        # points_to_keep[escala]*n_points primeros
+        best_harris.append(np.vstack(harris_points).T[sorted_indexes[0:points_to_keep[escala]*n_points]])
+
 
     return binaria
