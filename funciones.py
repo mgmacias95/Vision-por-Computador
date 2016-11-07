@@ -347,7 +347,7 @@ def Harris(lista_escalas,  umbral=0.00001, n_points = 1500, points_to_keep = [0.
     for escala in range(scale):
         for indices in best_harris_coords_orig[escala]:
             cv2.circle(img=img, radius=scale * escala,center=(indices[1], indices[0]), \
-                        color=floor(100 / (escala + 1)), thickness=-1)
+                        color=floor(255 / (escala + 1)), thickness=-1)
 
     mostrar(img)
 
@@ -355,4 +355,10 @@ def Harris(lista_escalas,  umbral=0.00001, n_points = 1500, points_to_keep = [0.
 
 # Función para refinar las esquinas sacadas en el apartado a con conrnerSubPix
 def refina_Harris(escalas, esquinas):
-    pass
+    ref_escalas = []
+    for i in range(len(escalas)):
+        float_esquinas = np.array(esquinas[i], dtype=np.float32)
+        cv2.cornerSubPix(image=escalas[i], corners=float_esquinas, winSize=(5,5), zeroZone=(-1,-1), \
+                        criteria=(cv2.TERM_CRITERIA_MAX_ITER | cv2.TERM_CRITERIA_COUNT, 10, 0.01))
+        ref_escalas.append(float_esquinas)
+    return ref_escalas

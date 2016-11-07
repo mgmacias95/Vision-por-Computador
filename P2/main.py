@@ -13,4 +13,6 @@ from funciones import *
 
 if __name__ == '__main__':
     img = cv2.imread('datos-T2/yosemite/Yosemite1.jpg', cv2.IMREAD_GRAYSCALE)
-    harris = Harris(lista_escalas=piramide_gaussiana(img=img, scale=3, sigma=1, return_canvas=False), umbral=0.0001)
+    escalas = piramide_gaussiana(img=img, scale=3, sigma=1, return_canvas=False)
+    harris = Harris(lista_escalas=escalas, umbral=0.00001)
+    harris_ref = refina_Harris(escalas=escalas, esquinas=harris)
