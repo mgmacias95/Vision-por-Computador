@@ -327,7 +327,7 @@ def Harris(img, n_points = 1500, points_to_keep = [0.7, 0.2, 0.1], window_size =
         # y también con el valor de harris de esos puntos
         harris_points = matrices_harris[escala][harris_index]
         # obtenemos los índices de los puntos del vector harris_points ordenados
-        sorted_indexes = np.argsort(harris_points)
+        sorted_indexes = np.argsort(harris_points)[::-1]
         # juntamos en una matriz con dos columnas las coordenadas x,y de los puntos y nos quedamos con los
         # points_to_keep[escala]*n_points primeros
         best_harris.append(np.vstack(harris_index).T[sorted_indexes[0:int(points_to_keep[escala]*n_points)]])
@@ -335,7 +335,20 @@ def Harris(img, n_points = 1500, points_to_keep = [0.7, 0.2, 0.1], window_size =
         binaria[escala][best_harris[escala][:,0],best_harris[escala][:,1]] = 255
 
     # una vez filtrados los mejores puntos de cada escala, los colocamos en la imagen original, dependiendo de la escala
-    # tendrán un radio u otro
+    # tendrán un radio u otro. En primer lugar creamos una matriz auxiliar en la que calcular las coordenadas de todos
+    # los puntos de todas las escalas.
+    img_aux = binaria[0]
+    for escala in range(1, scale):
+        # pasamos las coordenadas de la escala escala a las de la imagen original
+        best_harris[escala] = best_harris[escala]*(2*escala)
+        img_aux[best_harris[escala][:,0],best_harris[escala][:,1]] = 255
 
+    # dibujamos círculos en la imagen original
+    for escala in range(scale):
+        for indices in best_harris[escala]:
+            cv2.circle(img=img, radius=scale + escala,center=(indices[1], indices[0]), \
+                        color=floor(100 / (escala + 1)), thickness=-1)
 
-    return binaria
+    mostrar(img)
+
+    return img_aux
