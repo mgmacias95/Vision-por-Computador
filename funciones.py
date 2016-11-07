@@ -278,6 +278,23 @@ def put_zero_least_center(img, window_size, i, j):
 # superan dicho umbral
 binary_harris = lambda matriz, umbral: (matriz >= umbral) * 255
 
+# función que dibuja circulos en la imagen original
+def draw_circle_on_corners(img, esquinas, scale):
+    # En primer lugar creamos una matriz auxiliar en la que calcular las coordenadas de todos los puntos de todas las escalas.
+    best_harris_coords_orig = []  # imagen para guardar las coordenadas de harris en escala original
+    best_harris_coords_orig.append(np.array(esquinas[0], dtype=np.int64))
+    for escala in range(1, scale):
+        # pasamos las coordenadas de la escala escala a las de la imagen original
+        best_harris_coords_orig.append(np.array(esquinas[escala] * (2 * escala), dtype=np.int64))
+
+    # dibujamos círculos en la imagen original
+    for escala in range(scale):
+        for indices in best_harris_coords_orig[escala]:
+            cv2.circle(img=img, radius=escala*scale, center=(indices[1], indices[0]), \
+                       color=(1,0,0), thickness=-1)
+
+    mostrar(img)
+
 # apartado a) Calcular puntos de harris y pintarlos en la imagen original.
 def Harris(lista_escalas,  umbral=0.00001, n_points = 1500, points_to_keep = [0.7, 0.2, 0.1], window_size = 1, scale = 3):
     img = lista_escalas[0]
@@ -335,21 +352,8 @@ def Harris(lista_escalas,  umbral=0.00001, n_points = 1500, points_to_keep = [0.
         binaria[escala][best_harris[escala][:,0],best_harris[escala][:,1]] = 255
 
     # una vez filtrados los mejores puntos de cada escala, los colocamos en la imagen original, dependiendo de la escala
-    # tendrán un radio u otro. En primer lugar creamos una matriz auxiliar en la que calcular las coordenadas de todos
-    # los puntos de todas las escalas.
-    best_harris_coords_orig = [] # imagen para guardar las coordenadas de harris en escala original
-    best_harris_coords_orig.append(best_harris[0])
-    for escala in range(1, scale):
-        # pasamos las coordenadas de la escala escala a las de la imagen original
-        best_harris_coords_orig.append(best_harris[escala]*(2*escala))
-
-    # dibujamos círculos en la imagen original
-    for escala in range(scale):
-        for indices in best_harris_coords_orig[escala]:
-            cv2.circle(img=img, radius=scale * escala,center=(indices[1], indices[0]), \
-                        color=floor(255 / (escala + 1)), thickness=-1)
-
-    mostrar(img)
+    # tendrán un radio u otro.
+    draw_circle_on_corners(img=img, esquinas=best_harris, scale=scale)
 
     return best_harris
 
@@ -361,4 +365,6 @@ def refina_Harris(escalas, esquinas):
         cv2.cornerSubPix(image=escalas[i], corners=float_esquinas, winSize=(5,5), zeroZone=(-1,-1), \
                         criteria=(cv2.TERM_CRITERIA_MAX_ITER | cv2.TERM_CRITERIA_COUNT, 10, 0.01))
         ref_escalas.append(float_esquinas)
+
+    draw_circle_on_corners(img=escalas[0], esquinas=ref_escalas,scale=3)
     return ref_escalas
