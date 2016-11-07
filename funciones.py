@@ -278,9 +278,9 @@ def put_zero_least_center(img, window_size, i, j):
 # superan dicho umbral
 binary_harris = lambda matriz, umbral: (matriz >= umbral) * 255
 
-def Harris(img, n_points = 1500, points_to_keep = [0.7, 0.2, 0.1], window_size = 1, umbral=0.000001, scale = 3):
-    # hacemos una pirámide gaussiana con escala 3 de la imagen.
-    lista_escalas = piramide_gaussiana(img=img, scale=scale, sigma=1, return_canvas=False)
+# apartado a) Calcular puntos de harris y pintarlos en la imagen original.
+def Harris(lista_escalas,  umbral=0.00001, n_points = 1500, points_to_keep = [0.7, 0.2, 0.1], window_size = 1, scale = 3):
+    img = lista_escalas[0]
     # y para cada escala, usamos la función de OpenCV "cornerEigenValsAndVecs" para extraer los mapas de
     # auto-valores de la matriz Harris en cada píxel. Debemos tener en cuenta que esta función devuelve
     # 6 matrices (lambda1, lambda2, x1, y1, x2, y2) donde:
@@ -337,18 +337,22 @@ def Harris(img, n_points = 1500, points_to_keep = [0.7, 0.2, 0.1], window_size =
     # una vez filtrados los mejores puntos de cada escala, los colocamos en la imagen original, dependiendo de la escala
     # tendrán un radio u otro. En primer lugar creamos una matriz auxiliar en la que calcular las coordenadas de todos
     # los puntos de todas las escalas.
-    img_aux = binaria[0]
+    best_harris_coords_orig = [] # imagen para guardar las coordenadas de harris en escala original
+    best_harris_coords_orig.append(best_harris[0])
     for escala in range(1, scale):
         # pasamos las coordenadas de la escala escala a las de la imagen original
-        best_harris[escala] = best_harris[escala]*(2*escala)
-        img_aux[best_harris[escala][:,0],best_harris[escala][:,1]] = 255
+        best_harris_coords_orig.append(best_harris[escala]*(2*escala))
 
     # dibujamos círculos en la imagen original
     for escala in range(scale):
-        for indices in best_harris[escala]:
-            cv2.circle(img=img, radius=scale + escala,center=(indices[1], indices[0]), \
+        for indices in best_harris_coords_orig[escala]:
+            cv2.circle(img=img, radius=scale * escala,center=(indices[1], indices[0]), \
                         color=floor(100 / (escala + 1)), thickness=-1)
 
     mostrar(img)
 
-    return img_aux
+    return best_harris
+
+# Función para refinar las esquinas sacadas en el apartado a con conrnerSubPix
+def refina_Harris(escalas, esquinas):
+    pass
