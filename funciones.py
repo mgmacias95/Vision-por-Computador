@@ -368,3 +368,24 @@ def refina_Harris(escalas, esquinas):
 
     draw_circle_on_corners(img=escalas[0], esquinas=ref_escalas,scale=3)
     return ref_escalas
+
+# Función para calcular la orientación de cada esquina encontrada.
+def find_orientacion(escalas, esquinas, sigma=4.5):
+    # suavizamos las escalas encontradas
+    escalas_suavizadas = []
+    for escala in escalas:
+        escalas_suavizadas.append(my_filter2D(src=escala, kernel=my_getGaussianKernel(sigma=sigma), borderType='reflect'))
+
+    # calculamos los autovectores de las imágenes suavizadas
+    scale_eigenvalues = []
+    for escala in escalas_suavizadas:
+        scale_eigenvalues.append(cv2.split(cv2.cornerEigenValsAndVecs(src=escala, blockSize=3, ksize=3)))
+
+
+    for i in range(len(escalas)):
+        # consultamos los autovectores de las esquinas encontradas anteriormente
+        indices = esquinas[i].T.astype(int)
+        lambda1_x = scale_eigenvalues[i][2][indices[0], indices[1]]
+        lambda1_y = scale_eigenvalues[i][3][indices[0], indices[1]]
+
+        # y con esos valores pintamos
