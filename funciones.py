@@ -298,11 +298,11 @@ def draw_circle_on_corners(img, esquinas, scale, orientaciones = None, addOrient
     # si el flag de añadir orientacion está activado, pintamos un radio en el punto
     if addOrientation:
         for escala in range(scale):
-            for i in range(len(orientaciones)):
+            radio = escala*scale
+            for i in range(len(orientaciones[escala])):
                 punto = best_harris_coords_orig[escala][i]
                 angle = orientaciones[escala][i]
-                cv2.line(img=img, pt1=(punto[1], punto[0]), pt2 = (punto[1]+np.sin(angle), punto[0]+np.cos(angle)), \
-                         color=255)
+                cv2.line(img=img, pt1=(punto[1], punto[0]), pt2 = (punto[1]+floor(np.sin(angle)*radio), punto[0]+floor(np.cos(angle)*radio)), color=255)
 
     mostrar(img)
 
@@ -387,10 +387,10 @@ def find_orientacion(escalas, esquinas, sigma=4.5):
     orientaciones = []
     for i in range(len(escalas)):
         k = my_getGaussianKernel(sigma=sigma)
-        grad_x = my_filter2D(src=escalas[i], kernel=k, borderType='reflect', ejex=True, ejey=False)
-        grad_y = my_filter2D(src=escalas[i], kernel=k, borderType='reflect', ejex=False, ejey=True)
         esq_int = esquinas[i].T.astype(int)
-        orientaciones.append(np.arctan2(grad_x, grad_y)[esq_int[0], esq_int[1]])
+        grad_x = my_filter2D(src=escalas[i], kernel=k, borderType='reflect', ejex=True, ejey=False)[esq_int[0], esq_int[1]]
+        grad_y = my_filter2D(src=escalas[i], kernel=k, borderType='reflect', ejex=False, ejey=True)[esq_int[0], esq_int[1]]
+        orientaciones.append(np.arctan2(grad_y, grad_x))
 
     draw_circle_on_corners(img=escalas[0], esquinas=esquinas, scale=3, orientaciones=orientaciones, addOrientation=True)
 
