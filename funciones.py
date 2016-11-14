@@ -371,21 +371,24 @@ def refina_Harris(escalas, esquinas):
 
 # Función para calcular la orientación de cada esquina encontrada.
 def find_orientacion(escalas, esquinas, sigma=4.5):
-    # suavizamos las escalas encontradas
-    escalas_suavizadas = []
+    # calculamos las derivadas en x y en y aplicando un filtro sobel sobre la imagen
+    # escalas_suavizadas = []
     for escala in escalas:
-        escalas_suavizadas.append(my_filter2D(src=escala, kernel=my_getGaussianKernel(sigma=sigma), borderType='reflect'))
+        grad_x = cv2.Sobel(src=escala, ddepth=cv2.CV_32F, dx=1, dy=0)
+        abs_grad_x = cv2.convertScaleAbs(src=grad_x)
+        grad_y = cv2.Sobel(src=escala, ddepth=cv2.CV_32F, dx=0, dy=1)
+        abs_grac_y = cv2.convertScaleAbs(src=grad_y)
 
-    # calculamos los autovectores de las imágenes suavizadas
-    scale_eigenvalues = []
-    for escala in escalas_suavizadas:
-        scale_eigenvalues.append(cv2.split(cv2.cornerEigenValsAndVecs(src=escala, blockSize=3, ksize=3)))
-
-
-    for i in range(len(escalas)):
-        # consultamos los autovectores de las esquinas encontradas anteriormente
-        indices = esquinas[i].T.astype(int)
-        lambda1_x = scale_eigenvalues[i][2][indices[0], indices[1]]
-        lambda1_y = scale_eigenvalues[i][3][indices[0], indices[1]]
-
-        # y con esos valores pintamos
+    # # calculamos los autovectores de las imágenes suavizadas
+    # scale_eigenvalues = []
+    # for escala in escalas_suavizadas:
+    #     scale_eigenvalues.append(cv2.split(cv2.cornerEigenValsAndVecs(src=escala, blockSize=3, ksize=3)))
+    #
+    #
+    # for i in range(len(escalas)):
+    #     # consultamos los autovectores de las esquinas encontradas anteriormente
+    #     indices = esquinas[i].T.astype(int)
+    #     lambda1_x = scale_eigenvalues[i][2][indices[0], indices[1]]
+    #     lambda1_y = scale_eigenvalues[i][3][indices[0], indices[1]]
+    #
+    #     # y con esos valores pintamos
