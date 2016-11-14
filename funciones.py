@@ -131,40 +131,42 @@ def my_copyMakeBorder(src, space, borderType):
 apply_kernel = lambda original, kernel: np.sum(original * kernel)
 
 # Función para aplicar la máscara 1D a una imagen con más de un canal
-def my_filter2D(src, kernel, borderType):
+def my_filter2D(src, kernel, borderType, ejex=True, ejey=True):
     # en primer lugar comprobamos si la imagen es en color o en blanco y negro
     if len(src.shape) == 3:
         # si es en color, debemos separar sus canales
         canales = cv2.split(src)
         # y aplicar sobre cada uno de ellos el filtro
         for i in range(len(canales)):
-            canales[i] = my_filter2D_onechannel(src=canales[i], kernel=kernel, borderType=borderType)
+            canales[i] = my_filter2D_onechannel(src=canales[i], kernel=kernel, borderType=borderType, ejex=ejex, ejey=ejey)
         # una vez hecho esto, los volvemos a juntar con merge
         img = cv2.merge(canales)
     else:
         # si solo tiene un canal, aplicamos directamente el filtro
-        img = my_filter2D_onechannel(src=src, kernel=kernel, borderType=borderType)
+        img = my_filter2D_onechannel(src=src, kernel=kernel, borderType=borderType, ejex=ejex, ejey=ejey)
     return img
 
 # Función para aplicar la máscara 1D a un canal de la imagen
-def my_filter2D_onechannel(src, kernel, borderType):
+def my_filter2D_onechannel(src, kernel, borderType, ejex, ejey):
     mitad_mascara = floor(kernel.size/2)
     # En primer lugar, añadimos bordes a la imagen
     img_bordes = my_copyMakeBorder(src=src, space=mitad_mascara, borderType=borderType).astype(np.float64)
     # img_bordes = cv2.copyMakeBorder(src=src, top=mitad_mascara, bottom=mitad_mascara, left=mitad_mascara,
     #                                 right=mitad_mascara, borderType=borderType)
-    img_aux = np.ones(img_bordes.shape, np.float64)*255
+    img_aux = np.ones(img_bordes.shape, np.float32)*255
     # Después, aplicamos el kernel a cada trocito
-    for j in range(mitad_mascara, img_bordes.shape[0]-mitad_mascara):
-        for i in range(mitad_mascara,img_bordes.shape[1]-mitad_mascara):
-            img_aux[j,i] = apply_kernel(img_bordes[j,i-mitad_mascara:i+1+mitad_mascara], kernel)
-    img_bordes = img_aux.copy(order='F')
-    img_aux = np.ones(img_bordes.shape, np.uint8)*255
-    # Después, aplicamos el kernel a cada trocito
-    for j in range(mitad_mascara, img_bordes.shape[1]-mitad_mascara):
-        for i in range(mitad_mascara,img_bordes.shape[0]-mitad_mascara):
-            img_aux[i,j] = apply_kernel(img_bordes[i-mitad_mascara:i+1+mitad_mascara,j], kernel)
-    img_bordes = img_aux.copy(order='F')
+    if ejex:
+        for j in range(mitad_mascara, img_bordes.shape[0]-mitad_mascara):
+            for i in range(mitad_mascara,img_bordes.shape[1]-mitad_mascara):
+                img_aux[j,i] = apply_kernel(img_bordes[j,i-mitad_mascara:i+1+mitad_mascara], kernel)
+        img_bordes = img_aux.copy(order='F')
+        img_aux = np.ones(img_bordes.shape, np.float32)*255
+
+    if ejey:
+        for j in range(mitad_mascara, img_bordes.shape[1]-mitad_mascara):
+            for i in range(mitad_mascara,img_bordes.shape[0]-mitad_mascara):
+                img_aux[i,j] = apply_kernel(img_bordes[i-mitad_mascara:i+1+mitad_mascara,j], kernel)
+        img_bordes = img_aux.copy(order='F')
     # Devolvemos la imagen con el filtro aplicado
     return img_bordes[mitad_mascara:-mitad_mascara, mitad_mascara:-mitad_mascara]
 
@@ -371,24 +373,14 @@ def refina_Harris(escalas, esquinas):
 
 # Función para calcular la orientación de cada esquina encontrada.
 def find_orientacion(escalas, esquinas, sigma=4.5):
-    # calculamos las derivadas en x y en y aplicando un filtro sobel sobre la imagen
-    # escalas_suavizadas = []
-    for escala in escalas:
-        grad_x = cv2.Sobel(src=escala, ddepth=cv2.CV_32F, dx=1, dy=0)
-        abs_grad_x = cv2.convertScaleAbs(src=grad_x)
-        grad_y = cv2.Sobel(src=escala, ddepth=cv2.CV_32F, dx=0, dy=1)
-        abs_grac_y = cv2.convertScaleAbs(src=grad_y)
+    # calculamos las derivadas en x y en y aplicando un filtro sobel sobre la imagen. Una vez calculadas las derivadas,
+    # calcular la arcotangente, que será la orientación del punto.
+    orientaciones = []
+    for i in range(len(escalas)):
+        k = my_getGaussianKernel(sigma=sigma)
+        grad_x = my_filter2D(src=escalas[i], kernel=k, borderType='reflect', ejex=True, ejey=False)
+        grad_y = my_filter2D(src=escalas[i], kernel=k, borderType='reflect', ejex=False, ejey=True)
+        esq_int = esquinas[i].T.astype(int)
+        orientaciones.append(np.arctan2(grad_x, grad_y)[esq_int[0], esq_int[1]])
 
-    # # calculamos los autovectores de las imágenes suavizadas
-    # scale_eigenvalues = []
-    # for escala in escalas_suavizadas:
-    #     scale_eigenvalues.append(cv2.split(cv2.cornerEigenValsAndVecs(src=escala, blockSize=3, ksize=3)))
-    #
-    #
-    # for i in range(len(escalas)):
-    #     # consultamos los autovectores de las esquinas encontradas anteriormente
-    #     indices = esquinas[i].T.astype(int)
-    #     lambda1_x = scale_eigenvalues[i][2][indices[0], indices[1]]
-    #     lambda1_y = scale_eigenvalues[i][3][indices[0], indices[1]]
-    #
-    #     # y con esos valores pintamos
+    return orientaciones

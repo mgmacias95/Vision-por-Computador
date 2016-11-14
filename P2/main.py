@@ -16,4 +16,4 @@ if __name__ == '__main__':
     escalas = piramide_gaussiana(img=img, scale=3, sigma=1, return_canvas=False)
     harris = Harris(lista_escalas=escalas, umbral=0.00001)
     harris_ref = refina_Harris(escalas=escalas, esquinas=harris)
-    find_orientacion(escalas=escalas, esquinas=harris_ref)
+    orientacion = find_orientacion(escalas=escalas, esquinas=harris_ref)
