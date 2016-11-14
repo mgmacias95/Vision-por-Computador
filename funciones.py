@@ -281,7 +281,7 @@ def put_zero_least_center(img, window_size, i, j):
 binary_harris = lambda matriz, umbral: (matriz >= umbral) * 255
 
 # función que dibuja circulos en la imagen original
-def draw_circle_on_corners(img, esquinas, scale):
+def draw_circle_on_corners(img, esquinas, scale, orientaciones = None, addOrientation=False):
     # En primer lugar creamos una matriz auxiliar en la que calcular las coordenadas de todos los puntos de todas las escalas.
     best_harris_coords_orig = []  # imagen para guardar las coordenadas de harris en escala original
     best_harris_coords_orig.append(np.array(esquinas[0], dtype=np.int64))
@@ -293,7 +293,16 @@ def draw_circle_on_corners(img, esquinas, scale):
     for escala in range(scale):
         for indices in best_harris_coords_orig[escala]:
             cv2.circle(img=img, radius=escala*scale, center=(indices[1], indices[0]), \
-                       color=(1,0,0), thickness=-1)
+                       color=1, thickness=-1)
+
+    # si el flag de añadir orientacion está activado, pintamos un radio en el punto
+    if addOrientation:
+        for escala in range(scale):
+            for i in range(len(orientaciones)):
+                punto = best_harris_coords_orig[escala][i]
+                angle = orientaciones[escala][i]
+                cv2.line(img=img, pt1=(punto[1], punto[0]), pt2 = (punto[1]+np.sin(angle), punto[0]+np.cos(angle)), \
+                         color=255)
 
     mostrar(img)
 
@@ -382,5 +391,7 @@ def find_orientacion(escalas, esquinas, sigma=4.5):
         grad_y = my_filter2D(src=escalas[i], kernel=k, borderType='reflect', ejex=False, ejey=True)
         esq_int = esquinas[i].T.astype(int)
         orientaciones.append(np.arctan2(grad_x, grad_y)[esq_int[0], esq_int[1]])
+
+    draw_circle_on_corners(img=escalas[0], esquinas=esquinas, scale=3, orientaciones=orientaciones, addOrientation=True)
 
     return orientaciones
