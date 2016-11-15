@@ -392,7 +392,7 @@ def Harris(lista_escalas,  umbral=0.00001, n_points = 1500, points_to_keep = [0.
     return best_harris
 
 # Función para refinar las esquinas sacadas en el apartado a con conrnerSubPix
-def refina_Harris(escalas, esquinas):
+def refina_Harris(escalas, esquinas, scale=3):
     ref_escalas = []
     for i in range(len(escalas)):
         float_esquinas = np.array(esquinas[i], dtype=np.float32)
@@ -400,7 +400,7 @@ def refina_Harris(escalas, esquinas):
                         criteria=(cv2.TERM_CRITERIA_MAX_ITER | cv2.TERM_CRITERIA_COUNT, 10, 0.01))
         ref_escalas.append(float_esquinas)
 
-    draw_circle_on_corners(img=escalas[0], esquinas=ref_escalas,scale=3)
+    draw_circle_on_corners(img=escalas[0], esquinas=ref_escalas,scale=scale)
     return ref_escalas
 
 # Función para calcular la orientación de cada esquina encontrada.
@@ -411,8 +411,10 @@ def find_orientacion(escalas, esquinas, sigma=4.5):
     for i in range(len(escalas)):
         k = my_getGaussianKernel(sigma=sigma)
         esq_int = esquinas[i].T.astype(int)
-        grad_x = my_filter2D(src=escalas[i], kernel=k, borderType='reflect', ejex=True, ejey=False)[esq_int[0], esq_int[1]]
-        grad_y = my_filter2D(src=escalas[i], kernel=k, borderType='reflect', ejex=False, ejey=True)[esq_int[0], esq_int[1]]
+        grad_x = my_filter2D(src=escalas[i], kernel=k, borderType='reflect', \
+                             ejex=True, ejey=False)[esq_int[0], esq_int[1]]
+        grad_y = my_filter2D(src=escalas[i], kernel=k, borderType='reflect', \
+                             ejex=False, ejey=True)[esq_int[0], esq_int[1]]
         orientaciones.append(np.arctan2(grad_y, grad_x))
 
     draw_circle_on_corners(img=escalas[0], esquinas=esquinas, scale=3, orientaciones=orientaciones, addOrientation=True)
