@@ -329,12 +329,12 @@ def find_orientacion(escalas, esquinas, sigma=4.5):
 \begin{figure}[!h]
     \centering
     \mbox{
-        \subfigure[Todos los puntos tienen una orientación parecida debido a su similitud]{
+        \subfigure[Orientaciones obtenidas para la imagen de prueba]{
         \includegraphics[width=0.5\textwidth]{img4}
         \label{orprueba}
         }
 
-        \subfigure[Creo que está mal porque obtengo orientaciones muy similares en todos los puntos]{
+        \subfigure[Orientaciones obtenidas para la imagen de Yosemite]{
         \includegraphics[width=0.5\textwidth]{img9}
         \label{ormont}
         }
@@ -344,7 +344,7 @@ def find_orientacion(escalas, esquinas, sigma=4.5):
     \label{or}
 \end{figure}
 
-En la \hyperref[or]{Figura \ref*{or}} vemos el resultado obtenido por esta función, creo que no he calculado bien la orientación, ya que obtengo resultados muy parecidos en todos los puntos.
+En la \hyperref[or]{Figura \ref*{or}} vemos el resultado obtenido por esta función, creo que está bien calculado ya que obtengo una orientación diferente en cada punto de las imágenes.
 
 \section{Establecer correspondencias entre dos imágenes}
 
