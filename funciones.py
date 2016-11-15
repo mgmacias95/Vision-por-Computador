@@ -282,6 +282,7 @@ binary_harris = lambda matriz, umbral: (matriz >= umbral) * 255
 
 # función que dibuja circulos en la imagen original
 def draw_circle_on_corners(img, esquinas, scale, orientaciones = None, addOrientation=False):
+    img_aux = img.copy()
     # En primer lugar creamos una matriz auxiliar en la que calcular las coordenadas de todos los puntos de todas las escalas.
     best_harris_coords_orig = []  # imagen para guardar las coordenadas de harris en escala original
     best_harris_coords_orig.append(np.array(esquinas[0], dtype=np.int64))
@@ -292,60 +293,66 @@ def draw_circle_on_corners(img, esquinas, scale, orientaciones = None, addOrient
     # dibujamos círculos en la imagen original
     for escala in range(scale):
         for indices in best_harris_coords_orig[escala]:
-            cv2.circle(img=img, radius=escala*scale, center=(indices[1], indices[0]), \
+            cv2.circle(img=img_aux, radius=(escala+1)*scale, center=(indices[1], indices[0]), \
                        color=1, thickness=-1)
 
     # si el flag de añadir orientacion está activado, pintamos un radio en el punto
     if addOrientation:
         for escala in range(scale):
-            radio = escala*scale
+            radio = (escala+1)*scale
             for i in range(len(orientaciones[escala])):
                 punto = best_harris_coords_orig[escala][i]
                 angle = orientaciones[escala][i]
-                cv2.line(img=img, pt1=(punto[1], punto[0]), pt2 = (punto[1]+floor(np.sin(angle)*radio), punto[0]+floor(np.cos(angle)*radio)), color=255)
+                cv2.line(img=img_aux, pt1=(punto[1], punto[0]), pt2 = (punto[1]+floor(np.cos(angle)*radio), \
+                                                                   punto[0]+floor(np.sin(angle)*radio)), color=255)
 
-    mostrar(img)
+    mostrar(img_aux)
 
-# apartado a) Calcular puntos de harris y pintarlos en la imagen original.
-def Harris(lista_escalas,  umbral=0.00001, n_points = 1500, points_to_keep = [0.7, 0.2, 0.1], window_size = 1, scale = 3):
-    img = lista_escalas[0]
+def create_binary_harris(lista_escalas, umbral):
     # y para cada escala, usamos la función de OpenCV "cornerEigenValsAndVecs" para extraer los mapas de
     # auto-valores de la matriz Harris en cada píxel. Debemos tener en cuenta que esta función devuelve
     # 6 matrices (lambda1, lambda2, x1, y1, x2, y2) donde:
     #       * lambda1, lambda2 son los autovalores de M no ordenados
     #       * x1, y1 son los autovectores de lambda1
     #       * x2, y2 son los autovectores de lambda2
-    scale_eigenvalues = [] # lista de matrices en el que guardar resultados
+    scale_eigenvalues = []  # lista de matrices en el que guardar resultados
     for escala in lista_escalas:
         scale_eigenvalues.append(cv2.cornerEigenValsAndVecs(src=escala, blockSize=3, ksize=3))
 
     # una vez tenemos los autovalores de cada imagen, creamos una matriz por cada escala con el criterio de harris
-    matrices_harris = [] # lista de matrices para guardar las matrices del criterio de harris para cada escala
+    matrices_harris = []  # lista de matrices para guardar las matrices del criterio de harris para cada escala
     for escala in scale_eigenvalues:
-        canales = cv2.split(escala) # cornerEigenValsAndVecs devuelve una imagen con seis canales.
-        matrices_harris.append(criterio_harris(lambda1 = canales[0], lambda2 = canales[1]))
+        canales = cv2.split(escala)  # cornerEigenValsAndVecs devuelve una imagen con seis canales.
+        matrices_harris.append(criterio_harris(lambda1=canales[0], lambda2=canales[1]))
 
     # inicializamos una lista de imágenes binarias a 255 si no supera un determinado umbral y a 255 si lo supera. Una por escala.
     binaria = [binary_harris(escala, umbral) for escala in matrices_harris]
 
+    return binaria, matrices_harris
+
+def remove_local_maxima(binaria, matrices_harris, window_size, scale):
     # una vez tenemos nuestra imagen binaria, la recorremos preguntando para cada posición con valor 255 si
     # su correspondiente valor en la matriz de harris es máximo local o no.
     for escala in range(scale):
         # nos quedamos con los índices que superan el umbral
-        harris_index = np.where(binaria[escala] == 255) # where devuelve un vector con los índices fila y otro con las columnas
+        harris_index = np.where(
+            binaria[escala] == 255)  # where devuelve un vector con los índices fila y otro con las columnas
         # una vez tenemos esos indices, comprobamos si el valor de esa posición es máximo local o no
         for i in range(len(harris_index[0])):
             row = harris_index[0][i]
             col = harris_index[1][i]
             # comprobamos si el pixel row,col de la imagen binaria es máximo local
-            if row >= window_size and col >= window_size and is_localmax_center(matrices_harris[escala]\
-                        [row-window_size:row+window_size+1,col-window_size:col+window_size+1]):
+            if row >= window_size and col >= window_size and is_localmax_center(matrices_harris[escala] \
+                                                                                        [
+                                                                                row - window_size:row + window_size + 1,
+                                                                                col - window_size:col + window_size + 1]):
                 # si es máximo local, ponemos en negro a todos los píxeles de su entorno
                 put_zero_least_center(binaria[escala], window_size, row, col)
             else:
                 # si no lo es, ponemos el píxel a 0
-                binaria[escala][row,col] = 0
+                binaria[escala][row, col] = 0
 
+def get_best_harris(matrices_harris, binaria, points_to_keep, n_points, scale):
     # una vez tenemos los puntos de Harris eliminando no máximos, los ordenamos por su valor de Harris para quedarnos con
     # los n_points mejores
     best_harris = []
@@ -358,9 +365,25 @@ def Harris(lista_escalas,  umbral=0.00001, n_points = 1500, points_to_keep = [0.
         sorted_indexes = np.argsort(harris_points)[::-1]
         # juntamos en una matriz con dos columnas las coordenadas x,y de los puntos y nos quedamos con los
         # points_to_keep[escala]*n_points primeros
-        best_harris.append(np.vstack(harris_index).T[sorted_indexes[0:int(points_to_keep[escala]*n_points)]])
+        best_harris.append(np.vstack(harris_index).T[sorted_indexes[0:int(points_to_keep[escala] * n_points)]])
         binaria[escala][:] = 0
-        binaria[escala][best_harris[escala][:,0],best_harris[escala][:,1]] = 255
+        binaria[escala][best_harris[escala][:, 0], best_harris[escala][:, 1]] = 255
+
+    return best_harris
+
+# apartado a) Calcular puntos de harris y pintarlos en la imagen original.
+def Harris(lista_escalas,  umbral=0.00001, n_points = 1500, points_to_keep = [0.7, 0.2, 0.1], window_size = 1, scale = 3):
+    img = lista_escalas[0]
+
+    # Calculamos los puntos Harris que superan un determinado umbral.
+    binaria, matrices_harris = create_binary_harris(lista_escalas=lista_escalas, umbral=umbral)
+
+    # supresión de no máximos
+    remove_local_maxima(binaria=binaria, matrices_harris=matrices_harris, window_size=window_size, scale=scale)
+
+    # nos quedamos con los 1500 mejores puntos
+    best_harris = get_best_harris(matrices_harris=matrices_harris, binaria=binaria, points_to_keep=points_to_keep, \
+                  n_points=n_points, scale=scale)
 
     # una vez filtrados los mejores puntos de cada escala, los colocamos en la imagen original, dependiendo de la escala
     # tendrán un radio u otro.
