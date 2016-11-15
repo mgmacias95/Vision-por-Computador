@@ -12,8 +12,14 @@ import cv2
 from funciones import *
 
 if __name__ == '__main__':
-    img = cv2.imread('datos-T2/yosemite/Yosemite1.jpg', cv2.IMREAD_GRAYSCALE)
+    # Ejercicio 1
+    img = cv2.imread('datos-T2/Tablero1.jpg', cv2.IMREAD_GRAYSCALE)
     escalas = piramide_gaussiana(img=img, scale=3, sigma=1, return_canvas=False)
     harris = Harris(lista_escalas=escalas, umbral=0.00001)
     harris_ref = refina_Harris(escalas=escalas, esquinas=harris)
     orientacion = find_orientacion(escalas=escalas, esquinas=harris_ref)
+
+    # Ejercicio 2
+    # img1 = cv2.imread('datos-T2/yosemite/Yosemite1.jpg', cv2.IMREAD_UNCHANGED)
+    # img2 = cv2.imread('datos-T2/yosemite/Yosemite2.jpg', cv2.IMREAD_UNCHANGED)
+    # kaze_match(img1=img1, img2=img2)
