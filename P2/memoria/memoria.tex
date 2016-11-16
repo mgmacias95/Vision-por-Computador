@@ -382,6 +382,8 @@ def normal_matching(bf, desc1, desc2, kps1, kps2, img1, img2, n):
                 outImg=None)
     mostrar(matches_img)
 
+    return matches
+
 def akaze_match(img1, img2, n=50):
     # pasamos las fotos a blanco y negro
     gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
@@ -415,8 +417,10 @@ def akaze_match(img1, img2, n=50):
                 img1=img1, img2=img2, n=n)
 
     # hacemos el matching usando el método match
-    normal_matching(bf=bf, desc1=descs1, desc2=descs2, kps1=kps1, \
+    matches = normal_matching(bf=bf, desc1=descs1, desc2=descs2, kps1=kps1, \
                     kps2=kps2, img1=img1, img2=img2, n=n)
+
+    return matches, kps1, kps2
 
 \end{minted}
 
