@@ -357,7 +357,31 @@ Para ello, vamos a usar el detector de \textit{OpenCV} \textbf{AKAZE}. Con dicho
 Con el flag \texttt{crossCheck} activado, el método \texttt{knnMatch} con $k=1$ nos devolverá las parejas $(i,j)$ tales que $i$ sea el descriptor más cercano para $j$ y viceversa. De todas las parejas que nos devuelve este método, debemos quedarnos con las $n$ mejores.
 
 \begin{minted}[frame=lines, label={Cálculo de las correspondencias entre dos imágenes}]{python}
-# Ejercicio 2
+def knn_matching(bf, desc1, desc2, kps1, kps2, img1, img2, n, k=1):
+    # como crossCheck es True, knnMatch con k = 1 nos devolverá las parejas 
+    #(i,j) tales que el vecino más cercano de i sea j y viceversa
+    matches = bf.knnMatch(desc1, desc1, k=1)
+
+    # tomamos n aleatorios para dibujarlos
+    indices = sample(range(len(kps2)), n)
+
+    matches_img = cv2.drawMatchesKnn(img1=img1, keypoints1=kps1, img2=img2, \
+                keypoints2=kps2, matches1to2=[matches[i] for i in indices], \
+                outImg=None)
+    mostrar(matches_img)
+
+def normal_matching(bf, desc1, desc2, kps1, kps2, img1, img2, n):
+    matches = bf.match(desc1, desc1)
+
+    # tomamos n aleatorios para dibujarlos
+    indices = sample(range(len(kps2)), n)
+
+    # dibujamos los n primeros
+    matches_img = cv2.drawMatches(img1=img1, keypoints1=kps1, img2=img2, \
+                keypoints2=kps2, matches1to2=[matches[i] for i in indices],\
+                outImg=None)
+    mostrar(matches_img)
+
 def akaze_match(img1, img2, n=50):
     # pasamos las fotos a blanco y negro
     gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
@@ -372,39 +396,46 @@ def akaze_match(img1, img2, n=50):
     kps2, descs2 = detector.detectAndCompute(image=gray2, mask=None)
 
     # dibujamos los puntos claves en la imagen 1
-    keypoints_img1 = cv2.drawKeypoints(image=gray1, keypoints=kps1,\
+    keypoints_img1 = cv2.drawKeypoints(image=gray1, keypoints=kps1, \
                     outImage=None, color=(0,0,255), \
                     flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
     mostrar(keypoints_img1)
     # y en la imagen 2
     keypoints_img2 = cv2.drawKeypoints(image=gray2, keypoints=kps2, \
-                outImage=None, color=(255, 0, 0), \
-                flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+                    outImage=None, color=(255, 0, 0),\
+                    flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
     mostrar(keypoints_img2)
 
     # para hacer el matching, usamos la fuerza bruta y validación cruzada, 
     # NORM_L2 es la distancia euclídea.
     bf = cv2.BFMatcher(normType=cv2.NORM_L2, crossCheck=True)
-    # como crossCheck es True, knnMatch con k = 1 nos devolverá las parejas 
-    # (i,j) tales que el vecino más cercano de i sea j y viceversa
-    matches = bf.knnMatch(descs1,descs1, k=1)
 
-    # ordenamos los matches de mejor a peor en función de su distancia
-    sort_matches = sorted(matches, key=lambda x: x[0].distance)
+    # hacemos el matching usando knn
+    knn_matching(bf=bf, desc1=descs1, desc2=descs2, kps1=kps1, kps2=kps2, \
+                img1=img1, img2=img2, n=n)
 
-    # dibujamos los 10 mejores matches encontrados
-    matches_img = cv2.drawMatchesKnn(img1=img1, keypoints1=kps1, img2=img2, \
-                keypoints2=kps2, matches1to2=sort_matches[:n], outImg=None)
-    mostrar(matches_img)
+    # hacemos el matching usando el método match
+    normal_matching(bf=bf, desc1=descs1, desc2=descs2, kps1=kps1, \
+                    kps2=kps2, img1=img1, img2=img2, n=n)
+
 \end{minted}
 
 \begin{figure}[!h]
     \centering
+    \subfigure[Correspondencias obtenidas con \texttt{knnMatch}]{
     \includegraphics[width=\textwidth]{img12}
+    \label{corknn}
+    }
+    \subfigure[Correspondencias obtenidas con \texttt{match}]{
+    \includegraphics[width=\textwidth]{img13}
+    \label{cornmat}
+    }
     \caption{Correspondencias obtenidas entre las dos imágenes}
     \label{correspondencias}
 \end{figure}
 
 En la \hyperref[correspondencias]{Figura \ref*{correspondencias}} vemos el resultado de esta función. Como se ve, algunas correspondencias sí que son correctas, en cambio, también ha hecho correspondencias con puntos de una imagen que no aparecen en la otra y por tanto, son erróneos. Esto se debe a que las zonas en las que se ha hecho la correspondencia errónea son muy similares entre sí.
+
+En general, vemos que hay líneas rectas pero también líneas en otras direcciones. Este es el resultado que esperábamos, ya que es imposible que este método calcule las correspondencias correctamente al 100\%. Además, he hecho las correspondencias usando dos métodos: \texttt{knnMatch} y \texttt{match}, con ambas obtengo un resultado prácticamente idéntico.
 
 \end{document}
