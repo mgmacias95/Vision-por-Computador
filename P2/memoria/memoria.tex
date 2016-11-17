@@ -360,7 +360,7 @@ Con el flag \texttt{crossCheck} activado, el método \texttt{knnMatch} con $k=1$
 def knn_matching(bf, desc1, desc2, kps1, kps2, img1, img2, n, k=1):
     # como crossCheck es True, knnMatch con k = 1 nos devolverá las parejas 
     #(i,j) tales que el vecino más cercano de i sea j y viceversa
-    matches = bf.knnMatch(desc1, desc1, k=1)
+    matches = bf.knnMatch(desc1, desc2, k=1)
 
     # tomamos n aleatorios para dibujarlos
     indices = sample(range(len(kps2)), n)
@@ -371,7 +371,7 @@ def knn_matching(bf, desc1, desc2, kps1, kps2, img1, img2, n, k=1):
     mostrar(matches_img)
 
 def normal_matching(bf, desc1, desc2, kps1, kps2, img1, img2, n):
-    matches = bf.match(desc1, desc1)
+    matches = bf.match(desc1, desc2)
 
     # tomamos n aleatorios para dibujarlos
     indices = sample(range(len(kps2)), n)
