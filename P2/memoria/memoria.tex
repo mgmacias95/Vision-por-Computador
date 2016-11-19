@@ -442,4 +442,95 @@ En la \hyperref[correspondencias]{Figura \ref*{correspondencias}} vemos el resul
 
 En general, vemos que hay líneas rectas pero también líneas en otras direcciones. Este es el resultado que esperábamos, ya que es imposible que este método calcule las correspondencias correctamente al 100\%. Además, he hecho las correspondencias usando dos métodos: \texttt{knnMatch} y \texttt{match}, con ambas obtengo un resultado prácticamente idéntico.
 
+\section{Crear un mosaico}
+
+\subsection{Crear un mosaico con dos imágenes}
+
+Para crear un mosaico entre dos imágnenes me apoyo principalmente en dos funciones de \textit{OpenCV}: \texttt{findHomography} y \texttt{warpPerspective}. La primera la uso para calcular la homografía con la que relaciono ambas imágenes y la segunda, para transformar la segunda imagen (usando la homografía $H$ calculada anteriormente) de forma que pueda encajar con la primera en el plano del mosaico.
+
+\begin{minted}[frame=lines, label={Haciendo un mosaico con dos imágenes}]{python}
+def mosaico_dos(img1, img2, epsilon=0.5, mostrar_img=True):
+    matches, kps1, kps2 = akaze_match(img1=img1, img2=img2, mask=None, 
+                            mostrar_img=False)
+
+    puntos_dst = np.float32([kps1[m.queryIdx].pt for m in \
+                matches]).reshape(-1, 1, 2)
+
+    puntos_src = np.float32([kps2[m.trainIdx].pt for m in \
+                matches]).reshape(-1,1,2)
+
+    homografia, mascara = cv2.findHomography(srcPoints=puntos_src, 
+                        dstPoints=puntos_dst, method=cv2.RANSAC,
+                        ransacReprojThreshold=epsilon)
+
+    result = cv2.warpPerspective(src=img2, M=homografia, 
+            dsize=(img1.shape[1] + img2.shape[1], img2.shape[0]))
+
+    result[0:img1.shape[0], 0:img1.shape[1]] = img1
+
+    result=np.delete(arr=result, obj=np.where(result==0)[1],axis=1)
+
+    if mostrar_img:
+        mostrar(result)
+
+    return result
+\end{minted}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{img14}
+    \caption{Mosaico con dos imágenes}
+    \label{dosimagenes}
+\end{figure}
+
+Como se ve en la \hyperref[dosimagenes]{Figura \ref*{dosimagenes}}, el mosaico obtenido encaja perfectamente y lo único que puede resultar extraño es el cambio en el azul del cielo: en la primera imagen el color es más intenso que en la segunda. Para corregir esto tendríamos que hacer un degradado entre ambos azules de forma que el cambio no fuese tan brusco y no resultase tan extraño al ojo.
+
+\subsection{Mosaico entre $n$ imágenes}
+
+Para calcular un mosaico entre varias imágenes, he decidido aprovechar la función que he hecho para hacerlo entre dos. Mi función funciona de la siguiente manera: en primer lugar divido la lista de imágenes en dos, y \textit{\textbf{recursivamente}}, hago un mosaico de cada una de las mitades de la lista de imágenes. Esto lo hago para obtener la menor deformación posible en la imagen final. Si empezase a hacer mosaicos por uno de los extremos de la lista, el extremo contrario quedaría totalmente deformado y obtendríamos un mosaico \textit{estéticamente más feo}.
+
+\begin{minted}[frame=lines, label={Mosaico con n imágenes}]{python}
+# mosaico con más de dos imágenes asumiendo que las pasamos 
+# al programa en orden
+def mosaico_n(lista_imagenes):
+    if len(lista_imagenes) == 3:
+        # hacemos un mosaico con las dos primeras imagenes
+        mosaico_12 = mosaico_dos(img1 = lista_imagenes[0], 
+                    img2=lista_imagenes[1], mostrar_img=False)
+
+        mosaico_23 = mosaico_dos(img1 = lista_imagenes[1], 
+                    img2=lista_imagenes[2], mostrar_img=False)
+        # y los unimos
+        return mosaico_dos(img1=mosaico_12, img2=mosaico_23, mostrar_img=False)
+
+    elif len(lista_imagenes) == 2:
+        return mosaico_dos(img1=lista_imagenes[0], img2=lista_imagenes[1], 
+                        mostrar_img=False)
+
+    else:
+        # nos quedamos con el índice de la imagen central
+        central = floor(len(lista_imagenes)/2)
+        # llamamos recursivamente a esta función con dos listas
+        mosaico_primeramitad = mosaico_n(lista_imagenes[:central])
+        mosaico_segundamitad = mosaico_n(lista_imagenes[central:])
+        # y hacemos un mosaico con ambas
+        mosaico = mosaico_dos(img1=mosaico_primeramitad, 
+                    img2=mosaico_segundamitad, mostrar_img=False)
+
+        mostrar(mosaico)
+
+        return mosaico
+\end{minted}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{img17}
+    \caption{Mosaico con $n$ imágenes}
+    \label{nimagenes}
+\end{figure}
+
+En la \hyperref[nimagenes]{Figura \ref*{nimagenes}} vemos un mosaico obtenido con esta función. La calidad general del mosaico obtenido es buena. Sin embargo, en la segunda mitad del mosaico vemos que la última imagen no se ha acoplado bien del todo. Esto se debe a que entre la imagen \textit{mosaico009.jpg} y \textit{mosaico010.jpg} hay un cambio de altura y la homografía entre estas dos imágenes no se ha calculado correctamente.
+
+Además, no se ve en el mosaico toda la imagen \textit{mosaico011.jpg} debido a que la altura del mosaico es la misma que la altura de la primera imagen y además, se recorta toda la parte en negro.
+
 \end{document}
