@@ -13,7 +13,6 @@ from funciones import *
 
 if __name__ == '__main__':
     P = genera_camara_finita()
-    print(P)
     c1, c2 = genera_puntos_planos_ortogonales_distintos()
-    print(c1)
-    print(c2)
+    c = proyecta_puntos_en_plano(camara=P, puntos1=c1, puntos2=c2)
+    print(c)
