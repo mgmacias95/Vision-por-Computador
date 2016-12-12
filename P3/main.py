@@ -14,6 +14,7 @@ from funciones import *
 if __name__ == '__main__':
     P = genera_camara_finita()
     p = genera_puntos_planos_ortogonales_distintos()
+    print(p)
     c = proyecta_puntos_en_plano(camara=P, puntos=p)
     print(c)
 
