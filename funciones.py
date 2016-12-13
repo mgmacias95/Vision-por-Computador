@@ -596,9 +596,9 @@ def norm_points(points):
     desv_std = np.std(a=points)
     dims = points.shape[1] # para saber si estamos en 3d o 2d
     if dims==2:
-        Tr = np.array([[desv_std, 0, -media[0]],[0, desv_std, -media[1]],[0,0,1]])
+        Tr = np.array([[desv_std, 0, media[0]],[0, desv_std, media[1]],[0,0,1]])
     else:
-        Tr = np.array([[desv_std, 0, 0, -media[0]], [0, desv_std, 0, -media[1]], [0, 0, desv_std, -media[2]], [0,0,0,1]])
+        Tr = np.array([[desv_std, 0, 0, media[0]], [0, desv_std, 0, media[1]], [0, 0, desv_std, media[2]], [0,0,0,1]])
 
     Tr = np.linalg.inv(a=Tr)
     x = np.dot(Tr, np.concatenate((points.T, np.ones((1,points.shape[0])))))
@@ -631,7 +631,7 @@ def DLT(X, x):
     # deshacemos la normalización
     P = np.dot(np.dot(np.linalg.pinv(tr), P), Tr)
 
-    return -P
+    return P
 
 # Estimación del error de la cámara estimada
 def estima_error(orig, estimada):
