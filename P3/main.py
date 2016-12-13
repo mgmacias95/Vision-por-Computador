@@ -21,3 +21,4 @@ if __name__ == '__main__':
     print("Estimación de la matriz cámara")
     print(dlt)
     print("Error en la estimación de P: ", estima_error(orig=P, estimada=dlt))
+    draw_points(real_points=c, estimated_points=proyecta_puntos_en_plano(camara=dlt,puntos=p))

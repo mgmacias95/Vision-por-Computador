@@ -18,15 +18,15 @@ import cv2
 ########################################################################################################################
 # función gaussiana para la máscara
 kernel = lambda x, sigma: exp(-0.5 * ((x*x)/(sigma*sigma)))
-index_img_name = 18
+# index_img_name = 18
 
 def mostrar(imagen):
-    global index_img_name
-    cv2.imwrite(filename="memoria/img"+str(index_img_name)+'.jpg', img=imagen)
-    index_img_name+=1
-    # cv2.imshow('image', imagen.astype(np.uint8))
-    # cv2.waitKey()
-    # cv2.destroyAllWindows()
+    # global index_img_name
+    # cv2.imwrite(filename="memoria/img"+str(index_img_name)+'.jpg', img=imagen)
+    # index_img_name+=1
+    cv2.imshow('image', imagen.astype(np.uint8))
+    cv2.waitKey()
+    cv2.destroyAllWindows()
 
 # Función para calcular la máscara/kernel
 def my_getGaussianKernel(sigma):
@@ -636,3 +636,17 @@ def DLT(X, x):
 # Estimación del error de la cámara estimada
 def estima_error(orig, estimada):
     return np.linalg.norm(x=(orig - estimada), ord=None)
+
+# Función para pintar los puntos proyectados por la cámara real y la estimada
+def draw_points(real_points, estimated_points):
+    # creamos una imagen vacía
+    img = np.ones(shape=(200,100,3), dtype=np.uint8)
+    rp = np.array(150*real_points, dtype=np.int32)
+    ep = np.array(150*estimated_points, dtype=np.int32)
+    # pintamos los distintos puntos
+    for i in range(real_points.shape[0]):
+        cv2.circle(img=img, radius= 15, center=(rp[i,0], rp[i,1]), \
+                   color=(0,255,0), thickness=-1)
+        cv2.circle(img=img, radius=15, center=(ep[i, 0], ep[i, 1]), \
+                   color=(0, 0, 255), thickness=-1)
+    mostrar(img)
