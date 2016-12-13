@@ -596,9 +596,14 @@ def norm_points(points):
     desv_std = np.std(a=points)
     dims = points.shape[1] # para saber si estamos en 3d o 2d
     if dims==2:
-        Tr = np.array([[desv_std, 0, media[0]],[0, desv_std, media[1]],[0,0,1]])
+        Tr = np.array([[desv_std, 0, -media[0]],[0, desv_std, -media[1]],[0,0,1]])
     else:
-        Tr = np.array([[desv_std, 0, 0, media[0]], [0, desv_std, 0, media[1]], [0, 0, desv_std, media[2]], [0,0,0,1]])
+        Tr = np.array([[desv_std, 0, 0, -media[0]], [0, desv_std, 0, -media[1]], [0, 0, desv_std, -media[2]], [0,0,0,1]])
+
+    Tr = np.linalg.inv(a=Tr)
+    x = np.dot(Tr, np.concatenate((points.T, np.ones((1,points.shape[0])))))
+    x = x[0:dims,:].T
+    return Tr, x
 
 
 # Implementación del algoritmo DLT basada en el libro Multiple View Geometry
@@ -610,12 +615,19 @@ def DLT(X, x):
     # linealmente dependientes.
     M = np.zeros(shape=(2*n, 12))
     z = np.zeros(shape=(4))
+    # normalizamos los puntos
+    tr, xn = norm_points(x)
+    Tr, Xn = norm_points(X)
     # calculamos la matriz M
     for i in range(0,2*n,2):
         j = i/2
-        M[i] = np.concatenate((z, -X[j], [1], x[j,1]*X[j], [x[j,1]]))
-        M[i+1] = np.concatenate((X[j], [1], z, -x[j,0]*X[j], [x[j,0]]))
+        M[i] = np.concatenate((Xn[j], [1], z, -xn[j,0]*Xn[j], [-xn[j,0]]))
+        M[i+1] = np.concatenate((z, Xn[j], [1], -xn[j,1]*Xn[j], [-xn[j,1]]))
     # calculamos sus valores propios
     U,S,V = np.linalg.svd(a=M)
     # La última fila de V contiene el autovector con menor autovalor (S).
-    return V[-1].reshape(3,4)
+    P = V[-1].reshape(3,4)
+    # deshacemos la normalización
+    P = np.dot(np.dot(np.linalg.pinv(tr), P), Tr)
+    P = P/P[-1,-1]
+    return P
