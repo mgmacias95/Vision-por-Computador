@@ -630,5 +630,5 @@ def DLT(X, x):
     P = V[-1].reshape(3,4)
     # deshacemos la normalización
     P = np.dot(np.dot(np.linalg.pinv(tr), P), Tr)
-    P = P/P[-1,-1]
-    return P
+    err = np.linalg.norm(x=np.dot(a = P, b = np.vstack((X.T, np.ones(X.shape[0])))), ord=None)
+    return -P, err
