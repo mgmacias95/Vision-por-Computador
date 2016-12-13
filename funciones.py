@@ -606,7 +606,8 @@ def norm_points(points):
     return Tr, x
 
 
-# Implementación del algoritmo DLT basada en el libro Multiple View Geometry
+# Implementación del algoritmo DLT basada en el libro Multiple View Geometry y
+# http://www.maths.lth.se/matematiklth/personal/calle/datorseende13/notes/forelas3.pdf
 # Entrada del algoritmo: Xi (punto del mundo) y xi (proyección del punto).
 # Salida del algoritmo P (matriz 3x4 de la cámara) y lambda_i
 def DLT(X, x):
