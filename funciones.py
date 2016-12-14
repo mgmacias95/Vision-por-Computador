@@ -609,7 +609,7 @@ def norm_points(points):
 # Implementación del algoritmo DLT basada en el libro Multiple View Geometry y
 # http://www.maths.lth.se/matematiklth/personal/calle/datorseende13/notes/forelas3.pdf
 # Entrada del algoritmo: Xi (punto del mundo) y xi (proyección del punto).
-# Salida del algoritmo P (matriz 3x4 de la cámara) y lambda_i
+# Salida del algoritmo P (matriz 3x4 de la cámara)
 def DLT(X, x):
     n = x.shape[0] # numero de puntos
     # M tendrá, para cada punto, 2 filas y 12 columnas. Sólo usamos 2 filas ya que las tres ecuaciones de la matriz M son
@@ -621,7 +621,7 @@ def DLT(X, x):
     Tr, Xn = norm_points(X)
     # calculamos la matriz M
     for i in range(0,2*n,2):
-        j = i/2
+        j = int(i/2)
         M[i] = np.concatenate((Xn[j], [1], z, -xn[j,0]*Xn[j], [-xn[j,0]]))
         M[i+1] = np.concatenate((z, Xn[j], [1], -xn[j,1]*Xn[j], [-xn[j,1]]))
     # calculamos sus valores propios
