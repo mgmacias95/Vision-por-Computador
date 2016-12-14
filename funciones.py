@@ -545,6 +545,7 @@ def mosaico_n(lista_imagenes):
 ########################################################################################################################
 #                                              PRÁCTICA 3                                                              #
 ########################################################################################################################
+# Ejercicio 1
 # función para generar una cámara finita. Es decir, generar una matriz 3x4 cuyo determinante de las primeras tres
 # columnas con las filas sea distinto de cero.
 def genera_camara_finita():
@@ -645,8 +646,23 @@ def draw_points(real_points, estimated_points):
     ep = np.array(150*estimated_points, dtype=np.int32)
     # pintamos los distintos puntos
     for i in range(real_points.shape[0]):
-        cv2.circle(img=img, radius= 15, center=(rp[i,0], rp[i,1]), \
-                   color=(0,255,0), thickness=-1)
-        cv2.circle(img=img, radius=15, center=(ep[i, 0], ep[i, 1]), \
+        cv2.circle(img=img, radius=1, center=(rp[i,0], rp[i,1]), \
+                   color=(255,0,0), thickness=-1)
+        cv2.circle(img=img, radius=1, center=(ep[i, 0], ep[i, 1]), \
                    color=(0, 0, 255), thickness=-1)
     mostrar(img)
+
+# Ejercicio 2
+# Función que lee las imágenes chessboard de la carpeta path
+def lee_chessboard_images(path="chessboard/Image", n_imgs=25, format=".tif"):
+    # leemos la primera imagen
+    img = cv2.imread(path+'1'+format, cv2.IMREAD_GRAYSCALE)
+    # creamos un array de matrices con las dimensiones de la primera imagen
+    lista_imagenes = np.zeros((n_imgs, img.shape[0], img.shape[1]))
+    # guardamos la primera imagen en la primera posición del array
+    lista_imagenes[0] = img
+    # leemos el resto en un bucle
+    for i in range(1,n_imgs):
+        lista_imagenes[i] = cv2.imread(path+str(i+1)+format, cv2.IMREAD_GRAYSCALE)
+
+    return lista_imagenes
