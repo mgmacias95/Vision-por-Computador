@@ -30,4 +30,4 @@ if __name__ == '__main__':
     #                                           Ejercicio 2                                                            #
     ####################################################################################################################
     print("Ejercicio 2")
-    lee_chessboard_images()
+    find_and_draw_chessboard_corners()

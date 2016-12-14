@@ -654,15 +654,20 @@ def draw_points(real_points, estimated_points):
 
 # Ejercicio 2
 # Función que lee las imágenes chessboard de la carpeta path
-def lee_chessboard_images(path="chessboard/Image", n_imgs=25, format=".tif"):
-    # leemos la primera imagen
-    img = cv2.imread(path+'1'+format, cv2.IMREAD_GRAYSCALE)
-    # creamos un array de matrices con las dimensiones de la primera imagen
-    lista_imagenes = np.zeros((n_imgs, img.shape[0], img.shape[1]))
-    # guardamos la primera imagen en la primera posición del array
-    lista_imagenes[0] = img
-    # leemos el resto en un bucle
-    for i in range(1,n_imgs):
-        lista_imagenes[i] = cv2.imread(path+str(i+1)+format, cv2.IMREAD_GRAYSCALE)
+def find_and_draw_chessboard_corners(path="chessboard/Image", n_imgs=25, format=".tif", pat_size=(14,13)):
+    imgpoints = []
+    for i in range(n_imgs):
+        img = cv2.imread(path+str(i+1)+format)
+        gray = cv2.cvtColor(src=img, code=cv2.COLOR_BGR2GRAY)
 
-    return lista_imagenes
+        # encontrar los chess board corner
+        retval, corners = cv2.findChessboardCorners(image=gray, patternSize=pat_size, flags=cv2.CALIB_CB_NORMALIZE_IMAGE)
+
+        # si hemos encontrado, pasamos a refinarlos
+        if retval:
+            corners2 = cv2.cornerSubPix(image=gray, corners=corners, winSize=(11,11), zeroZone=(-1,-1),
+                                        criteria=(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001))
+            imgpoints.append(corners2)
+            # mostramos los corner encontrados
+            img = cv2.drawChessboardCorners(image=img, patternSize=pat_size, corners=corners2,patternWasFound=retval)
+            mostrar(img)
