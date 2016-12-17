@@ -654,7 +654,7 @@ def draw_points(real_points, estimated_points):
 
 # Ejercicio 2
 # Función que lee las imágenes chessboard de la carpeta path
-def find_and_draw_chessboard_corners(path="chessboard/Image", n_imgs=25, format=".tif", pat_size=(14,13)):
+def find_and_draw_chessboard_corners(path="chessboard/Image", n_imgs=25, format=".tif", pat_size=(10,7)):
     imgpoints = []
 
     for i in range(n_imgs):
@@ -664,9 +664,9 @@ def find_and_draw_chessboard_corners(path="chessboard/Image", n_imgs=25, format=
         # encontrar los chess board corner
         retval, corners = cv2.findChessboardCorners(image=gray, patternSize=pat_size,
                                                     flags=(cv2.CALIB_CB_NORMALIZE_IMAGE+
-                                                          cv2.CALIB_CB_ADAPTIVE_THRESH+
-                                                          cv2.CALIB_CB_FAST_CHECK))
-
+                                                           cv2.CALIB_CB_ADAPTIVE_THRESH
+                                                           +cv2.CALIB_CB_FAST_CHECK))
+        print(corners)
         # si hemos encontrado, pasamos a refinarlos
         if retval:
             corners2 = cv2.cornerSubPix(image=gray, corners=corners, winSize=(11,11), zeroZone=(-1,-1),

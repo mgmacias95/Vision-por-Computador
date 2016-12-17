@@ -9,6 +9,8 @@
 ########################################################################################################################
 
 import cv2
+import sys
+sys.path.append("/home/marta/Documentos/Git/Vision-por-Computador/")
 from funciones import *
 
 if __name__ == '__main__':
