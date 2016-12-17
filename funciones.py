@@ -666,9 +666,8 @@ def find_and_draw_chessboard_corners(path="chessboard/Image", n_imgs=25, format=
                                                     flags=(cv2.CALIB_CB_NORMALIZE_IMAGE+
                                                            cv2.CALIB_CB_ADAPTIVE_THRESH
                                                            +cv2.CALIB_CB_FAST_CHECK))
-        print(corners)
         # si hemos encontrado, pasamos a refinarlos
-        if retval:
+        if not corners is None:
             corners2 = cv2.cornerSubPix(image=gray, corners=corners, winSize=(11,11), zeroZone=(-1,-1),
                             criteria=(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001))
             imgpoints.append(corners2)
