@@ -552,6 +552,7 @@ def genera_camara_finita():
     P = np.random.rand(3,4)
     while np.linalg.det(P[:3,:3]) == 0:
         P = np.random.rand(3,4)
+    P=P/P[-1,-1]
     return P
 
 # función para generar puntos del mundo 3D con coordenadas {(0, x1, x2) y (x2, x1, 0)}. Es decir, una rejilla de puntos
@@ -628,10 +629,10 @@ def DLT(X, x):
     # calculamos sus valores propios
     U,S,V = np.linalg.svd(a=M)
     # La última fila de V contiene el autovector con menor autovalor (S).
-    P = V[-1].reshape(3,4)
+    P = (V[-1]/V[-1,-1]).reshape(3,4)
     # deshacemos la normalización
     P = np.dot(np.dot(np.linalg.pinv(tr), P), Tr)
-
+    P = P/P[-1,-1]
     return P
 
 # Estimación del error de la cámara estimada
@@ -653,13 +654,18 @@ def draw_points(real_points, estimated_points):
     mostrar(img)
 
 # Ejercicio 2
-# Función que lee las imágenes chessboard de la carpeta path
-def find_and_draw_chessboard_corners(path="chessboard/Image", n_imgs=25, format=".tif", pat_size=(10,7)):
-    imgpoints = []
+# Función que lee las imágenes chessboard de la carpeta path y calcula las esquinas
+def find_and_draw_chessboard_corners(path="chessboard/Image", n_imgs=25, format=".tif", pat_size=(8,6)):
+    imgpoints = [] # puntos 2D de la imagen
+    objpoints = [] # puntos 3D del mundo real. Tomando como centro del mundo el tablero.
+    objp = np.zeros((pat_size[0]*pat_size[1],3),np.float32)
+    objp[:,:2] = np.mgrid[0:pat_size[0], 0:pat_size[1]].T.reshape(-1,2)
+    gray_shape = 0
 
     for i in range(n_imgs):
         img = cv2.imread(path+str(i+1)+format)
         gray = cv2.cvtColor(src=img, code=cv2.COLOR_BGR2GRAY)
+        gray_shape = gray.shape
 
         # encontrar los chess board corner
         retval, corners = cv2.findChessboardCorners(image=gray, patternSize=pat_size,
@@ -668,10 +674,19 @@ def find_and_draw_chessboard_corners(path="chessboard/Image", n_imgs=25, format=
                                                            +cv2.CALIB_CB_FAST_CHECK))
         # si hemos encontrado, pasamos a refinarlos
         if not corners is None:
+
             corners2 = cv2.cornerSubPix(image=gray, corners=corners, winSize=(11,11), zeroZone=(-1,-1),
                             criteria=(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001))
             imgpoints.append(corners2)
+            objpoints.append(objp)
             # mostramos los corner encontrados
             img = cv2.drawChessboardCorners(image=img, patternSize=pat_size, corners=corners2,
                                             patternWasFound=retval)
             mostrar(img)
+    return imgpoints, objpoints, gray_shape
+
+# Función que calibra la cámara usando las esquinas encontradas
+def calibrate(objpoints, imgpoints, pic_shape):
+    ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objectPoints=objpoints, imagePoints=imgpoints,
+                                                       imageSize=pic_shape[::-1], cameraMatrix=None, distCoeffs=None)
+    return mtx
