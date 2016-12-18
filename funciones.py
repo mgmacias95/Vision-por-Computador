@@ -660,6 +660,7 @@ def find_and_draw_chessboard_corners(path="chessboard/Image", n_imgs=25, format=
     objpoints = [] # puntos 3D del mundo real. Tomando como centro del mundo el tablero.
     objp = np.zeros((pat_size[0]*pat_size[1],3),np.float32)
     objp[:,:2] = np.mgrid[0:pat_size[0], 0:pat_size[1]].T.reshape(-1,2)
+    objp = objp.reshape(-1,1,3)
     gray_shape = 0
 
     for i in range(n_imgs):
@@ -674,19 +675,20 @@ def find_and_draw_chessboard_corners(path="chessboard/Image", n_imgs=25, format=
                                                            +cv2.CALIB_CB_FAST_CHECK))
         # si hemos encontrado, pasamos a refinarlos
         if not corners is None:
-
+            # cada llamada a esta función da un número de puntos entre 0 y patsize[1]*patsize[0]. Por tanto, nos
+            # tendremos que quedar con los corners2.shape[0] primeros puntos del mundo objp
             corners2 = cv2.cornerSubPix(image=gray, corners=corners, winSize=(11,11), zeroZone=(-1,-1),
                             criteria=(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001))
             imgpoints.append(corners2)
-            objpoints.append(objp)
+            objpoints.append(objp[0:corners2.shape[0]])
             # mostramos los corner encontrados
             img = cv2.drawChessboardCorners(image=img, patternSize=pat_size, corners=corners2,
                                             patternWasFound=retval)
-            mostrar(img)
+            # mostrar(img)
     return imgpoints, objpoints, gray_shape
 
 # Función que calibra la cámara usando las esquinas encontradas
 def calibrate(objpoints, imgpoints, pic_shape):
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objectPoints=objpoints, imagePoints=imgpoints,
-                                                       imageSize=pic_shape[::-1], cameraMatrix=None, distCoeffs=None)
+                                                       imageSize=pic_shape, cameraMatrix=None, distCoeffs=None)
     return mtx
