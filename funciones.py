@@ -700,11 +700,11 @@ def calibrate(objpoints, imgpoints, pic_shape):
 def calibrate_undistort(img_index, mtx, dist, pic_shape):
     # calculamos la camera matrix óptima
     newmtx, roi = cv2.getOptimalNewCameraMatrix(cameraMatrix=mtx, distCoeffs=dist, imageSize=pic_shape,
-                                                alpha=1)
+                                                alpha=1, newImgSize=pic_shape)
     # leemos todas las imágenes de la lista img_index, calculamos la imagen sin distorsión
     for i in img_index:
         img = cv2.imread(i)
-        dst = cv2.undistort(src=img, cameraMatrix=mtx, distCoeffs=dist, newCameraMatrix=newmtx)
+        dst = cv2.undistort(src=img, cameraMatrix=mtx, distCoeffs=dist, dst=None, newCameraMatrix=newmtx)
         # recortamos la imagen
         if roi != (0,0,0,0):
             x,y,w,h = roi

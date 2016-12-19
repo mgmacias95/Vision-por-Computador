@@ -36,5 +36,3 @@ if __name__ == '__main__':
     mtx, dist = calibrate(objpoints=objpoints, imgpoints=imgpoints, pic_shape=pic_shape[::-1])
     print(mtx)
     calibrate_undistort(img_index=img_index, mtx=mtx, dist=dist, pic_shape=pic_shape[::-1])
-    
-
