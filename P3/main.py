@@ -32,7 +32,9 @@ if __name__ == '__main__':
     #                                           Ejercicio 2                                                            #
     ####################################################################################################################
     print("Ejercicio 2")
-    imgpoints, objpoints, pic_shape, img_index = find_and_draw_chessboard_corners()
+    valid_imgs = find_valid_imgs()
+    imgpoints, objpoints, pic_shape = find_and_draw_chessboard_corners(valid_images=valid_imgs)
     mtx, dist = calibrate(objpoints=objpoints, imgpoints=imgpoints, pic_shape=pic_shape[::-1])
-    print(mtx)
-    calibrate_undistort(img_index=img_index, mtx=mtx, dist=dist, pic_shape=pic_shape[::-1])
+    valid_und_imgs = calibrate_undistort(valid_images=valid_imgs, mtx=mtx, dist=dist, pic_shape=pic_shape[::-1])
+    imgpoints_und, objpoints_und, pic_shape_und = find_and_draw_chessboard_corners(valid_images=valid_und_imgs)
+    mtx_und, dist_und = calibrate(objpoints=objpoints_und, imgpoints=imgpoints_und, pic_shape=pic_shape_und)

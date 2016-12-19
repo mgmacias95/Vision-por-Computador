@@ -655,18 +655,31 @@ def draw_points(real_points, estimated_points):
 
 # Ejercicio 2
 # Función que lee las imágenes chessboard de la carpeta path y calcula las esquinas
-def find_and_draw_chessboard_corners(path="chessboard/Image", n_imgs=25, format=".tif", pat_size=(13,12)):
+def find_valid_imgs(path="chessboard/Image", n_imgs=25, format=".tif", pat_size=(13,12)):
+    valid_imgs = []
+    for i in range(n_imgs):
+        imgpath = path+str(i+1)+format
+        img = cv2.imread(imgpath)
+        gray = cv2.cvtColor(src=img, code=cv2.COLOR_BGR2GRAY)
+        # encontrar los chess board corner
+        retval, corners = cv2.findChessboardCorners(image=gray, patternSize=pat_size,
+                                                    flags=(cv2.CALIB_CB_NORMALIZE_IMAGE +
+                                                           cv2.CALIB_CB_ADAPTIVE_THRESH
+                                                           + cv2.CALIB_CB_FAST_CHECK))
+        if retval:
+            valid_imgs.append(img)
+
+    return valid_imgs
+
+def find_and_draw_chessboard_corners(valid_images, pat_size=(13,12)):
     imgpoints = [] # puntos 2D de la imagen
     objpoints = [] # puntos 3D del mundo real. Tomando como centro del mundo el tablero.
     objp = np.zeros((pat_size[0]*pat_size[1],3),np.float32)
     objp[:,:2] = np.mgrid[0:pat_size[0], 0:pat_size[1]].T.reshape(-1,2)
     objp = objp.reshape(-1,1,3)
     gray_shape = 0
-    img_index = []
 
-    for i in range(n_imgs):
-        imgpath = path+str(i+1)+format
-        img = cv2.imread(imgpath)
+    for img in valid_images:
         gray = cv2.cvtColor(src=img, code=cv2.COLOR_BGR2GRAY)
         gray_shape = gray.shape
 
@@ -682,32 +695,43 @@ def find_and_draw_chessboard_corners(path="chessboard/Image", n_imgs=25, format=
             corners2 = cv2.cornerSubPix(image=gray, corners=corners, winSize=(11,11), zeroZone=(-1,-1),
                             criteria=(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001))
             imgpoints.append(corners2)
-            objpoints.append(objp[0:corners2.shape[0]])
-            img_index.append(imgpath)
+            objpoints.append(objp)
             # mostramos los corner encontrados
-            img = cv2.drawChessboardCorners(image=img, patternSize=pat_size, corners=corners2,
+            imgcorners = img.copy()
+            imgdraw = cv2.drawChessboardCorners(image=imgcorners, patternSize=pat_size, corners=corners2,
                                             patternWasFound=retval)
-            mostrar(img)
-    return imgpoints, objpoints, gray_shape, img_index
+            mostrar(imgdraw)
+
+    return imgpoints, objpoints, gray_shape
 
 # Función que calibra la cámara usando las esquinas encontradas
 def calibrate(objpoints, imgpoints, pic_shape):
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objectPoints=objpoints, imagePoints=imgpoints,
                                                 imageSize=pic_shape, cameraMatrix=None, distCoeffs=None)
+    print("Matriz de la cámara")
+    print(mtx)
+    print("Parámetros intrínsecos")
+    print(dist)
+    print("Parámetros extrínsecos")
+    print("Rotación")
+    print(rvecs)
+    print("Traslación")
+    print(tvecs)
     return mtx, dist
 
 # Función que calibra la cámara eliminando la distorsión de la imagen original
-def calibrate_undistort(img_index, mtx, dist, pic_shape):
+def calibrate_undistort(valid_images, mtx, dist, pic_shape):
+    valid_und_img = []
     # calculamos la camera matrix óptima
     newmtx, roi = cv2.getOptimalNewCameraMatrix(cameraMatrix=mtx, distCoeffs=dist, imageSize=pic_shape,
-                                                alpha=1, newImgSize=pic_shape)
+                                                alpha=1)
     # leemos todas las imágenes de la lista img_index, calculamos la imagen sin distorsión
-    for i in img_index:
-        img = cv2.imread(i)
-        dst = cv2.undistort(src=img, cameraMatrix=mtx, distCoeffs=dist, dst=None, newCameraMatrix=newmtx)
+    for img in valid_images:
+        dst = cv2.undistort(src=img, cameraMatrix=mtx, distCoeffs=dist, newCameraMatrix=newmtx)
         # recortamos la imagen
         x,y,w,h = roi
         dst = dst[y:y+h, x:x+w]
+        valid_und_img.append(dst)
         mostrar(dst)
     
-    
+    return valid_und_img
