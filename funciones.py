@@ -693,7 +693,7 @@ def find_and_draw_chessboard_corners(path="chessboard/Image", n_imgs=25, format=
 # Función que calibra la cámara usando las esquinas encontradas
 def calibrate(objpoints, imgpoints, pic_shape):
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objectPoints=objpoints, imagePoints=imgpoints,
-                                                       imageSize=pic_shape, cameraMatrix=None, distCoeffs=None)
+                                                imageSize=pic_shape, cameraMatrix=None, distCoeffs=None)
     return mtx, dist
 
 # Función que calibra la cámara eliminando la distorsión de la imagen original
@@ -706,6 +706,9 @@ def calibrate_undistort(img_index, mtx, dist, pic_shape):
         img = cv2.imread(i)
         dst = cv2.undistort(src=img, cameraMatrix=mtx, distCoeffs=dist, newCameraMatrix=newmtx)
         # recortamos la imagen
-        x,y,w,h = roi
-        dst = dst[y:y+h, x:x+w]
+        if roi != (0,0,0,0):
+            x,y,w,h = roi
+            dst = dst[y:y+h, x:x+w]
         mostrar(dst)
+    
+    
