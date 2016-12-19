@@ -655,7 +655,7 @@ def draw_points(real_points, estimated_points):
 
 # Ejercicio 2
 # Función que lee las imágenes chessboard de la carpeta path y calcula las esquinas
-def find_and_draw_chessboard_corners(path="chessboard/Image", n_imgs=25, format=".tif", pat_size=(8,6)):
+def find_and_draw_chessboard_corners(path="chessboard/Image", n_imgs=25, format=".tif", pat_size=(13,12)):
     imgpoints = [] # puntos 2D de la imagen
     objpoints = [] # puntos 3D del mundo real. Tomando como centro del mundo el tablero.
     objp = np.zeros((pat_size[0]*pat_size[1],3),np.float32)
@@ -676,7 +676,7 @@ def find_and_draw_chessboard_corners(path="chessboard/Image", n_imgs=25, format=
                                                            cv2.CALIB_CB_ADAPTIVE_THRESH
                                                            +cv2.CALIB_CB_FAST_CHECK))
         # si hemos encontrado, pasamos a refinarlos
-        if not corners is None:
+        if retval:
             # cada llamada a esta función da un número de puntos entre 0 y patsize[1]*patsize[0]. Por tanto, nos
             # tendremos que quedar con los corners2.shape[0] primeros puntos del mundo objp
             corners2 = cv2.cornerSubPix(image=gray, corners=corners, winSize=(11,11), zeroZone=(-1,-1),
@@ -687,7 +687,7 @@ def find_and_draw_chessboard_corners(path="chessboard/Image", n_imgs=25, format=
             # mostramos los corner encontrados
             img = cv2.drawChessboardCorners(image=img, patternSize=pat_size, corners=corners2,
                                             patternWasFound=retval)
-            # mostrar(img)
+            mostrar(img)
     return imgpoints, objpoints, gray_shape, img_index
 
 # Función que calibra la cámara usando las esquinas encontradas
@@ -706,9 +706,8 @@ def calibrate_undistort(img_index, mtx, dist, pic_shape):
         img = cv2.imread(i)
         dst = cv2.undistort(src=img, cameraMatrix=mtx, distCoeffs=dist, dst=None, newCameraMatrix=newmtx)
         # recortamos la imagen
-        if roi != (0,0,0,0):
-            x,y,w,h = roi
-            dst = dst[y:y+h, x:x+w]
+        x,y,w,h = roi
+        dst = dst[y:y+h, x:x+w]
         mostrar(dst)
     
     
