@@ -662,9 +662,11 @@ def find_and_draw_chessboard_corners(path="chessboard/Image", n_imgs=25, format=
     objp[:,:2] = np.mgrid[0:pat_size[0], 0:pat_size[1]].T.reshape(-1,2)
     objp = objp.reshape(-1,1,3)
     gray_shape = 0
+    img_index = []
 
     for i in range(n_imgs):
-        img = cv2.imread(path+str(i+1)+format)
+        imgpath = path+str(i+1)+format
+        img = cv2.imread(imgpath)
         gray = cv2.cvtColor(src=img, code=cv2.COLOR_BGR2GRAY)
         gray_shape = gray.shape
 
@@ -681,14 +683,29 @@ def find_and_draw_chessboard_corners(path="chessboard/Image", n_imgs=25, format=
                             criteria=(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001))
             imgpoints.append(corners2)
             objpoints.append(objp[0:corners2.shape[0]])
+            img_index.append(imgpath)
             # mostramos los corner encontrados
             img = cv2.drawChessboardCorners(image=img, patternSize=pat_size, corners=corners2,
                                             patternWasFound=retval)
             # mostrar(img)
-    return imgpoints, objpoints, gray_shape
+    return imgpoints, objpoints, gray_shape, img_index
 
 # Función que calibra la cámara usando las esquinas encontradas
 def calibrate(objpoints, imgpoints, pic_shape):
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objectPoints=objpoints, imagePoints=imgpoints,
                                                        imageSize=pic_shape, cameraMatrix=None, distCoeffs=None)
-    return mtx
+    return mtx, dist
+
+# Función que calibra la cámara eliminando la distorsión de la imagen original
+def calibrate_undistort(img_index, mtx, dist, pic_shape):
+    # calculamos la camera matrix óptima
+    newmtx, roi = cv2.getOptimalNewCameraMatrix(cameraMatrix=mtx, distCoeffs=dist, imageSize=pic_shape,
+                                                alpha=1)
+    # leemos todas las imágenes de la lista img_index, calculamos la imagen sin distorsión
+    for i in img_index:
+        img = cv2.imread(i)
+        dst = cv2.undistort(src=img, cameraMatrix=mtx, distCoeffs=dist, newCameraMatrix=newmtx)
+        # recortamos la imagen
+        x,y,w,h = roi
+        dst = dst[y:y+h, x:x+w]
+        mostrar(dst)
