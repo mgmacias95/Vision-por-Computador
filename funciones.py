@@ -643,8 +643,8 @@ def estima_error(orig, estimada):
 def draw_points(real_points, estimated_points):
     # creamos una imagen vacía
     img = np.ones(shape=(200,100,3), dtype=np.uint8)
-    rp = np.array(150*real_points, dtype=np.int32)
-    ep = np.array(150*estimated_points, dtype=np.int32)
+    rp = np.array(100*real_points, dtype=np.int32)
+    ep = np.array(100*estimated_points, dtype=np.int32)
     # pintamos los distintos puntos
     for i in range(real_points.shape[0]):
         cv2.circle(img=img, radius=1, center=(rp[i,0], rp[i,1]), \
@@ -729,8 +729,8 @@ def calibrate_undistort(valid_images, mtx, dist, pic_shape):
     for img in valid_images:
         dst = cv2.undistort(src=img, cameraMatrix=mtx, distCoeffs=dist, newCameraMatrix=newmtx)
         # recortamos la imagen
-        x,y,w,h = roi
-        dst = dst[y:y+h, x:x+w]
+        # x,y,w,h = roi
+        # dst = dst[y:y+h, x:x+w]
         valid_und_img.append(dst)
         mostrar(dst)
     
