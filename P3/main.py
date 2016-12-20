@@ -31,10 +31,20 @@ if __name__ == '__main__':
     ####################################################################################################################
     #                                           Ejercicio 2                                                            #
     ####################################################################################################################
-    print("Ejercicio 2")
-    valid_imgs = find_valid_imgs()
-    imgpoints, objpoints, pic_shape = find_and_draw_chessboard_corners(valid_images=valid_imgs)
-    mtx, dist = calibrate(objpoints=objpoints, imgpoints=imgpoints, pic_shape=pic_shape[::-1])
-    valid_und_imgs = calibrate_undistort(valid_images=valid_imgs, mtx=mtx, dist=dist, pic_shape=pic_shape[::-1])
-    imgpoints_und, objpoints_und, pic_shape_und = find_and_draw_chessboard_corners(valid_images=valid_und_imgs)
-    mtx_und, dist_und = calibrate(objpoints=objpoints_und, imgpoints=imgpoints_und, pic_shape=pic_shape_und)
+    # print("Ejercicio 2")
+    # valid_imgs = find_valid_imgs()
+    # imgpoints, objpoints, pic_shape = find_and_draw_chessboard_corners(valid_images=valid_imgs)
+    # mtx, dist = calibrate(objpoints=objpoints, imgpoints=imgpoints, pic_shape=pic_shape[::-1])
+    # valid_und_imgs = calibrate_undistort(valid_images=valid_imgs, mtx=mtx, dist=dist, pic_shape=pic_shape[::-1])
+    # imgpoints_und, objpoints_und, pic_shape_und = find_and_draw_chessboard_corners(valid_images=valid_und_imgs)
+    # mtx_und, dist_und = calibrate(objpoints=objpoints_und, imgpoints=imgpoints_und, pic_shape=pic_shape_und)
+    ####################################################################################################################
+    #                                           Ejercicio 3                                                            #
+    ####################################################################################################################
+    print("Ejercicio 3")
+    # leemos las imágenes
+    vmort1 = cv2.imread("vmort/Vmort1.pgm")
+    vmort2 = cv2.imread("vmort/Vmort2.pgm")
+    matches, kps1, kps2 = get_match(img1=vmort1, img2=vmort2)
+    matches, kps1, kps2 = get_match(img1=vmort1, img2=vmort2, type="BRISK")
+    matches, kps1, kps2 = get_match(img1=vmort1, img2=vmort2, type="ORB")

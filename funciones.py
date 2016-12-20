@@ -442,7 +442,7 @@ def knn_matching(bf, desc1, desc2, kps1, kps2, img1, img2, n, k=1):
     matches = bf.knnMatch(desc1, desc2, k=k)
 
     # tomamos n aleatorios para dibujarlos
-    indices = sample(range(len(kps2)), n)
+    indices = sample(range(len(matches)), n)
 
     matches_img = cv2.drawMatchesKnn(img1=img1, keypoints1=kps1, img2=img2, keypoints2=kps2, \
                                      matches1to2=[matches[i] for i in indices], outImg=None)
@@ -462,13 +462,18 @@ def normal_matching(bf, desc1, desc2, kps1, kps2, img1, img2, n, mostrar_img):
 
     return matches
 
-def akaze_match(img1, img2, mask=None, mostrar_img=True, n=50):
+def get_match(img1, img2, mask=None, mostrar_img=True, n=50, type="AKAZE"):
     # pasamos las fotos a blanco y negro
     gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
     gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 
-    # inicializamos el descriptor AKAZE
-    detector = cv2.AKAZE_create()
+    # inicializamos el descriptor del tipo que pasamos por parámetro
+    if type=="AKAZE":
+        detector = cv2.AKAZE_create()
+    elif type=="BRISK":
+        detector = cv2.BRISK_create()
+    else: # type == "ORB"
+        detector = cv2.ORB_create()
 
     # detectamos los keypoint y extraemos los descriptores de ambas fotos.
     kps1, descs1 = detector.detectAndCompute(image=gray1, mask=mask)
@@ -735,3 +740,5 @@ def calibrate_undistort(valid_images, mtx, dist, pic_shape):
         mostrar(dst)
     
     return valid_und_img
+
+# Ejercicio 3
