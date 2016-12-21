@@ -746,11 +746,11 @@ def calibrate_undistort(valid_images, mtx, dist, pic_shape):
 def compare_descriptors(list_matches):
     # para cada elemento de la lista de matches sacamos la mínima y la máxima distancia
     getdist = attrgetter('distance')
-    maxmins = np.zeros((len(list_matches), 2))
+    maxmins = np.zeros((len(list_matches), 3))
     i = 0
     for matches in list_matches:
         l = list(map(getdist, matches))
-        maxmins[i] = (max(l), min(l))
+        maxmins[i] = (max(l), min(l), len(l))
         i+=1
     return maxmins
 
