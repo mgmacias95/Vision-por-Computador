@@ -12,6 +12,7 @@ from math import floor, exp, ceil
 from random import sample
 import numpy as np
 import cv2
+from operator import attrgetter
 
 ########################################################################################################################
 #                                              PRÁCTICA 1                                                              #
@@ -742,3 +743,15 @@ def calibrate_undistort(valid_images, mtx, dist, pic_shape):
     return valid_und_img
 
 # Ejercicio 3
+def compare_descriptors(list_matches):
+    # para cada elemento de la lista de matches sacamos la mínima y la máxima distancia
+    getdist = attrgetter('distance')
+    maxmins = np.zeros((len(list_matches), 2))
+    i = 0
+    for matches in list_matches:
+        l = list(map(getdist, matches))
+        maxmins[i] = (max(l), min(l))
+        i+=1
+    return maxmins
+
+        

@@ -10,7 +10,6 @@
 
 import cv2
 import sys
-from operator import attrgetter
 sys.path.append("/home/marta/Documentos/Git/Vision-por-Computador/")
 from funciones import *
 
@@ -51,12 +50,6 @@ if __name__ == '__main__':
                                           mostrar_img=False)
     matches_o, kps1_o, kps2_o = get_match(img1=vmort1, img2=vmort2, type="ORB", knn_matching=False,
                                           mostrar_img=False)
-    print("Suma de las distancias obtenidas por cada descriptor")
-    getdist = attrgetter('distance')
-    dist_a = sum(list(map(getdist, matches_a)))
-    dist_b = sum(list(map(getdist, matches_b)))
-    dist_o = sum(list(map(getdist, matches_o)))
-
-    print("AKAZE: ", dist_a)
-    print("BRISK: ", dist_b)
-    print("ORB: ", dist_o)
+    maxmins = compare_descriptors(list_matches = [matches_a, matches_b, matches_o])
+    print(maxmins)
+    
