@@ -462,7 +462,7 @@ def normal_matching(bf, desc1, desc2, kps1, kps2, img1, img2, n, mostrar_img):
 
     return matches
 
-def get_match(img1, img2, mask=None, mostrar_img=True, n=50, type="AKAZE"):
+def get_match(img1, img2, mask=None, mostrar_img=True, knn_matching=True, n=50, type="AKAZE"):
     # pasamos las fotos a blanco y negro
     gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
     gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
@@ -494,7 +494,7 @@ def get_match(img1, img2, mask=None, mostrar_img=True, n=50, type="AKAZE"):
     bf = cv2.BFMatcher(normType=cv2.NORM_L2, crossCheck=True)
 
     # hacemos el matching usando knn
-    if mostrar_img:
+    if mostrar_img and knn_matching:
         knn_matching(bf=bf, desc1=descs1, desc2=descs2, kps1=kps1, kps2=kps2, img1=img1, img2=img2, n=n)
 
     # hacemos el matching usando el método match

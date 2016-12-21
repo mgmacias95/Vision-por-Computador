@@ -45,6 +45,10 @@ if __name__ == '__main__':
     # leemos las imágenes
     vmort1 = cv2.imread("vmort/Vmort1.pgm")
     vmort2 = cv2.imread("vmort/Vmort2.pgm")
-    matches, kps1, kps2 = get_match(img1=vmort1, img2=vmort2)
-    matches, kps1, kps2 = get_match(img1=vmort1, img2=vmort2, type="BRISK")
-    matches, kps1, kps2 = get_match(img1=vmort1, img2=vmort2, type="ORB")
+    matches_a, kps1_a, kps2_a = get_match(img1=vmort1, img2=vmort2, knn_matching=False)
+    matches_b, kps1_b, kps2_b = get_match(img1=vmort1, img2=vmort2, type="BRISK", knn_matching=False)
+    matches_o, kps1_o, kps2_o = get_match(img1=vmort1, img2=vmort2, type="ORB", knn_matching=False)
+    print("Distancias obtenidas por cada descriptor")
+    print("AKAZE: ", matches_a.distance)
+    print("BRISK: ", matches_b.distance)
+    print("ORB: ", matches_o.distance)
