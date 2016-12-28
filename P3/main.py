@@ -45,11 +45,7 @@ if __name__ == '__main__':
     # leemos las imágenes
     vmort1 = cv2.imread("vmort/Vmort1.pgm")
     vmort2 = cv2.imread("vmort/Vmort2.pgm")
-    matches_a, kps1_a, kps2_a = get_match(img1=vmort1, img2=vmort2, knn_matching=False, mostrar_img=False)
-    matches_b, kps1_b, kps2_b = get_match(img1=vmort1, img2=vmort2, type="BRISK", knn_matching=False,
-                                          mostrar_img=False)
-    matches_o, kps1_o, kps2_o = get_match(img1=vmort1, img2=vmort2, type="ORB", knn_matching=False,
-                                          mostrar_img=False)
-    maxmins = compare_descriptors(list_matches = [matches_a, matches_b, matches_o])
+    list_matches = make_descriptors(vmort1=vmort1, vmort2=vmort2)
+    maxmins = compare_descriptors(list_matches = list_matches)
     print(maxmins)
     

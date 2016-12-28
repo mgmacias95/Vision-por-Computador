@@ -743,6 +743,18 @@ def calibrate_undistort(valid_images, mtx, dist, pic_shape):
     return valid_und_img
 
 # Ejercicio 3
+# función que realiza los descriptores ORB, BRISK y AKAZE
+def make_descriptors(vmort1, vmort2):
+    matches_a, kps1_a, kps2_a = get_match(img1=vmort1, img2=vmort2, knn_matching=False, mostrar_img=False)
+    matches_b, kps1_b, kps2_b = get_match(img1=vmort1, img2=vmort2, type="BRISK", knn_matching=False,
+                                          mostrar_img=False)
+    matches_o, kps1_o, kps2_o = get_match(img1=vmort1, img2=vmort2, type="ORB", knn_matching=False,
+                                          mostrar_img=False)
+
+    return [matches_a, matches_b, matches_o]
+
+
+# función que compara los descriptores y nos dice el mejor
 def compare_descriptors(list_matches):
     # para cada elemento de la lista de matches sacamos la mínima y la máxima distancia
     getdist = attrgetter('distance')
@@ -752,6 +764,11 @@ def compare_descriptors(list_matches):
         l = list(map(getdist, matches))
         maxmins[i] = (max(l), min(l), len(l))
         i+=1
-    return maxmins
 
-        
+    print(maxmins)
+    return np.where(maxmins[:,1] == min(maxmins[:,1]))
+
+
+# función que implementa el algoritmo de los 8 puntos + RANSAC
+def find_fundamental_matrix():
+    pass
