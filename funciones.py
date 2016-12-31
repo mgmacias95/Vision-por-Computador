@@ -766,7 +766,8 @@ def compare_descriptors(list_matches):
         i+=1
 
     print(maxmins)
-    return np.where(maxmins[:,1] == min(maxmins[:,1]))
+    # el mejor será el que encuentre un mayor número de correspondencias con la distancia más pequeña
+    return np.where((maxmins[:,1] == min(maxmins[:,1])) | (maxmins[:,2] == max(maxmins[:,2])))[0][0]
 
 
 # función que implementa el algoritmo de los 8 puntos + RANSAC
