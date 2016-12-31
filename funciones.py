@@ -767,9 +767,15 @@ def compare_descriptors(list_matches):
 
     print(maxmins)
     # el mejor será el que encuentre un mayor número de correspondencias con la distancia más pequeña
-    return np.where((maxmins[:,1] == min(maxmins[:,1])) | (maxmins[:,2] == max(maxmins[:,2])))[0][0]
+    best = np.where((maxmins[:,1] == min(maxmins[:,1])) | (maxmins[:,2] == max(maxmins[:,2])))[0][0]
+    return ["AKAZE","BRISK","ORB"][best]
 
-
-# función que implementa el algoritmo de los 8 puntos + RANSAC
-def find_fundamental_matrix():
-    pass
+# función que implementa el algoritmo de los 8 puntos + RANSAC.
+# Basado en http://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_calib3d/py_epipolar_geometry/py_epipolar_geometry.html
+def find_fundamental_matrix(matches, kps1, kps2):
+    F, mask = cv2.findFundamentalMat(points1=kps1, points2=kps2)
+    # seleccionamos solo inliers
+    # We select only inlier points
+    pts1 = kps1[mask.ravel() == 1]
+    pts2 = kps2[mask.ravel() == 1]
+    return F, mask, pts1, pts2

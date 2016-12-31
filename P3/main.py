@@ -47,5 +47,6 @@ if __name__ == '__main__':
     vmort2 = cv2.imread("vmort/Vmort2.pgm")
     list_matches = make_descriptors(vmort1=vmort1, vmort2=vmort2)
     maxmins = compare_descriptors(list_matches = list_matches)
-    print(maxmins)
-    
+    print("Mejor descriptor: ",maxmins)
+    matches, kps1, kps2 = get_match(img1=vmort1, img2=vmort2, type=maxmins,knn_matching=False,mostrar_img=False)
+    f, mask, pts1, pts2 = find_fundamental_matrix(matches=matches, kps1=kps1, kps2=kps2)
