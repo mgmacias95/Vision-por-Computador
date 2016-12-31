@@ -806,3 +806,28 @@ def find_and_draw_epipolar_lines(img, pts, pts_other, F, index, n=200):
         x1, y1 = map(int, [c, -(l[2]+l[0]*c)/l[1]])
         img = cv2.line(img=img, pt1=(x0,y0), pt2=(x1, y1), color=color, thickness=1)
         img = cv2.circle(img=img, center=tuple(pt), radius=5, color=color, thickness=-1)
+    return lines
+
+# función que calcula la distancia entre un punto y una línea
+# fuente: https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+def distance_point_line(point, line):
+    x0, y0 = point
+    a, b, c = line
+    return np.abs(a*x0 + b*y0 + c)/np.sqrt(a*a + b*b)
+
+# función que calcula las distancias al cuadrado entre los puntos y sus líneas epipolares y finalmente devuelve la media
+def epipolar_distance_points_lines(points, lines):
+    n = points.shape[0]
+    distance = np.zeros(n, np.float32)
+    for i in range(n):
+        d = distance_point_line(point=points[i], line=lines[i][0])
+        distance[i] = d
+    return np.mean(distance)
+
+# función que calcula el error epipolar simétrico
+def epipolar_symmetric_error(points1, lines1, points2, lines2):
+    # calculamos la media de las distancias de cada punto a su línea epipolar
+    distance1 = epipolar_distance_points_lines(points=points1, lines=lines1)
+    distance2 = epipolar_distance_points_lines(points=points2, lines=lines2)
+    # aplicamos la fórmula
+    return (distance1 + distance2)/2
