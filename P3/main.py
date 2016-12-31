@@ -49,4 +49,4 @@ if __name__ == '__main__':
     maxmins = compare_descriptors(list_matches = list_matches)
     print("Mejor descriptor: ",maxmins)
     matches, kps1, kps2 = get_match(img1=vmort1, img2=vmort2, type=maxmins,knn_matching=False,mostrar_img=False)
-    f, mask, pts1, pts2 = find_fundamental_matrix(matches=matches, kps1=kps1, kps2=kps2)
+    F, mask, pts1, pts2 = find_fundamental_matrix(matches=matches, kps1=kps1, kps2=kps2)

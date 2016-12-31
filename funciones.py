@@ -508,7 +508,7 @@ def get_match(img1, img2, mask=None, mostrar_img=True, knn_matching=True, n=50, 
 
 # mosaico con dos imágenes
 def mosaico_dos(img1, img2, epsilon=0.5, mostrar_img=True):
-    matches, kps1, kps2 = akaze_match(img1=img1, img2=img2, mask=None, mostrar_img=False)
+    matches, kps1, kps2 = get_match(img1=img1, img2=img2, mask=None, mostrar_img=False)
     puntos_dst = np.float32([kps1[m.queryIdx].pt for m in matches]).reshape(-1, 1, 2)
     puntos_src = np.float32([kps2[m.trainIdx].pt for m in matches]).reshape(-1,1,2)
     homografia, mascara = cv2.findHomography(srcPoints=puntos_src, dstPoints=puntos_dst, method=cv2.RANSAC,
@@ -773,9 +773,19 @@ def compare_descriptors(list_matches):
 # función que implementa el algoritmo de los 8 puntos + RANSAC.
 # Basado en http://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_calib3d/py_epipolar_geometry/py_epipolar_geometry.html
 def find_fundamental_matrix(matches, kps1, kps2):
-    F, mask = cv2.findFundamentalMat(points1=kps1, points2=kps2)
+    pts1 = []
+    pts2 = []
+    for m in matches:
+        pts1.append(kps1[m.queryIdx].pt)
+        pts2.append(kps2[m.trainIdx].pt)
+    pts1 = np.int32(pts1)
+    pts2 = np.int32(pts2)
+    F, mask = cv2.findFundamentalMat(points1=pts1, points2=pts2)
     # seleccionamos solo inliers
     # We select only inlier points
-    pts1 = kps1[mask.ravel() == 1]
-    pts2 = kps2[mask.ravel() == 1]
+    pts1 = pts1[mask.ravel() == 1]
+    pts2 = pts2[mask.ravel() == 1]
+    print("Matriz fundamental")
+    print(F)
+
     return F, mask, pts1, pts2
