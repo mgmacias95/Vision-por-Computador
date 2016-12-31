@@ -788,4 +788,21 @@ def find_fundamental_matrix(matches, kps1, kps2):
     print("Matriz fundamental")
     print(F)
 
-    return F, mask, pts1, pts2
+    return F, pts1, pts2
+
+# función para dibujar las líneas epipolares en las imágenes
+def find_and_draw_epipolar_lines(img, pts, pts_other, F, index, n=200):
+    # en primer lugar calculamos las líneas epipolares
+    lines = cv2.computeCorrespondEpilines(points=pts_other.reshape(-1,1,2), whichImage=index, F=F)
+    lines.reshape(-1,3)
+    r,c = img.shape[:2]
+    # tomamos n indices aleatorios para pintar
+    indices = sample(range(len(lines)), n)
+    for l,pt in zip(lines[indices], pts[indices]):
+        l = l[0]
+        # generamos un color aleatorio
+        color = tuple(np.random.randint(0,255,3).tolist())
+        x0, y0 = map(int, [0, -l[2]/l[1]])
+        x1, y1 = map(int, [c, -(l[2]+l[0]*c)/l[1]])
+        img = cv2.line(img=img, pt1=(x0,y0), pt2=(x1, y1), color=color, thickness=1)
+        img = cv2.circle(img=img, center=tuple(pt), radius=5, color=color, thickness=-1)
