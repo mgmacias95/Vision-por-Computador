@@ -714,6 +714,7 @@ def find_and_draw_chessboard_corners(valid_images, pat_size=(13,12)):
 def calibrate(objpoints, imgpoints, pic_shape):
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objectPoints=objpoints, imagePoints=imgpoints,
                                                 imageSize=pic_shape, cameraMatrix=None, distCoeffs=None)
+    print("Reprojection error: ",ret)
     print("Matriz de la cámara")
     print(mtx)
     print("Parámetros intrínsecos")
@@ -782,7 +783,6 @@ def find_fundamental_matrix(matches, kps1, kps2):
     pts2 = np.int32(pts2)
     F, mask = cv2.findFundamentalMat(points1=pts1, points2=pts2)
     # seleccionamos solo inliers
-    # We select only inlier points
     pts1 = pts1[mask.ravel() == 1]
     pts2 = pts2[mask.ravel() == 1]
     print("Matriz fundamental")
