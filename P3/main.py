@@ -63,3 +63,15 @@ if __name__ == '__main__':
     # la cámara es igual en todos los ficheros, por lo que sólo basta con leerla una vez
     camera = read_camera()
     print(camera)
+    path = "reconstruccion/rdimage."
+    photos = [path+"000.ppm",path+"001.ppm",path+"004.ppm"]
+    imgs = []
+    rotations = []
+    translations = []
+    dist_rad = []
+    for photo in photos:
+        img, dist_r, rot, tra = read_images_and_calibration_parameters(img=photo, calib_file=photo+".camera")
+        imgs.append(img)
+        rotations.append(rot)
+        translations.append(tra)
+        dist_rad.append(dist_r)
