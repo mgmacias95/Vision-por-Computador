@@ -831,3 +831,19 @@ def epipolar_symmetric_error(points1, lines1, points2, lines2):
     distance2 = epipolar_distance_points_lines(points=points2, lines=lines2)
     # aplicamos la fórmula
     return (distance1 + distance2)/2
+
+# Ejercicio 4
+def read_camera(file="reconstruccion/rdimage.000.ppm.camera"):
+    # leemos el fichero y leemos las tres primeras líneas
+    camera = np.zeros(shape=(3,3), dtype=np.float32)
+    with open(file) as f:
+        for i in range(3):
+            linea = f.readline().split(sep=" ")
+            camera[i][0] = np.float32(linea[0])
+            camera[i][1] = np.float32(linea[1])
+            camera[i][2] = np.float32(linea[2])
+    return camera
+
+def read_images_and_calibration_parameters(img, calib_file):
+    img = cv2.imread(filename=img, flags=cv2.IMREAD_GRAYSCALE)
+
