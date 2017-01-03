@@ -781,7 +781,7 @@ def find_fundamental_matrix(matches, kps1, kps2):
         pts2.append(kps2[m.trainIdx].pt)
     pts1 = np.int32(pts1)
     pts2 = np.int32(pts2)
-    F, mask = cv2.findFundamentalMat(points1=pts1, points2=pts2)
+    F, mask = cv2.findFundamentalMat(points1=pts1, points2=pts2, method=cv2.FM_8POINT + cv2.FM_RANSAC)
     # seleccionamos solo inliers
     pts1 = pts1[mask.ravel() == 1]
     pts2 = pts2[mask.ravel() == 1]
@@ -845,7 +845,7 @@ def read_camera(file="reconstruccion/rdimage.000.ppm.camera"):
 def read_images_and_calibration_parameters(img, calib_file):
     # en primer lugar leemos la imagen y, después, los parámetros de rotación y
     # traslación que tiene asociados
-    img_m = cv2.imread(filename=img, flags=cv2.IMREAD_GRAYSCALE)
+    img_m = cv2.imread(filename=img)
     rotacion = np.zeros(shape=(3,3), dtype=np.float32)
     traslacion = np.zeros(shape=(3), dtype=np.float32)
     with open(calib_file) as f:
@@ -857,3 +857,22 @@ def read_images_and_calibration_parameters(img, calib_file):
         rotacion[i] = np.array(lines[i].split(sep=" ")[:3], dtype=np.float32)
 
     return img_m, rotacion, traslacion
+
+def my_find_essential_matrix(F, camera):
+    # la matriz cámara es igual para ambas imágenes
+    E = camera.T.dot(F.dot(camera))
+    print("Matriz esencial")
+    print(E)
+    return E
+
+def compute_r_and_t(E):
+    # descomponemos E en valores singulares. D = diag(1,1,0)^T
+    U,D,V = np.linalg.svd(a=E)
+    W = np.array([[0,-1,0],[1,0,0],[0,0,1]])
+    # puede hacer dos Rs distintas: R = UWV^T o UW^TV^T
+    R_1 = U.dot(W.dot(V.T))
+    R_2 = U.dot(W.T.dot(V.T))
+    # y puede haber dos T distintas -u3 o u3:
+    T_1 = U[:,2]
+    T_2 = -U[:,2]
+

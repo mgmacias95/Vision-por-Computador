@@ -62,7 +62,9 @@ if __name__ == '__main__':
     print("Ejercicio 4")
     # la cámara es igual en todos los ficheros, por lo que sólo basta con leerla una vez
     camera = read_camera()
+    print("Matriz cámara:")
     print(camera)
+    # leemos las imágenes y los parámetros extrínsecos
     path = "reconstruccion/rdimage."
     photos = [path+"000.ppm",path+"001.ppm",path+"004.ppm"]
     imgs = []
@@ -73,3 +75,10 @@ if __name__ == '__main__':
         imgs.append(img)
         rotations.append(rot)
         translations.append(tra)
+
+    # una vez hemos leído los datos, calculamos las correspondencias entre las imágenes y la matriz fundamental
+    matches, kps1, kps2 = get_match(img1=imgs[0], img2=imgs[1], type="BRISK", mostrar_img=False, knn_matching=False)
+    F, pts1, pts2 = find_fundamental_matrix(matches=matches, kps1=kps1, kps2=kps2)
+    # una vez tenemos calculada la matriz fundamental pasamos a estimar E
+    E = my_find_essential_matrix(F=F, camera=camera)
+    compute_r_and_t(E=E)
