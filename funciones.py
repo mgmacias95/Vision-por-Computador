@@ -843,18 +843,17 @@ def read_camera(file="reconstruccion/rdimage.000.ppm.camera"):
     return camera
 
 def read_images_and_calibration_parameters(img, calib_file):
-    # en primer lugar leemos la imagen y, después, los parámetros de distorsión radial, rotación y
+    # en primer lugar leemos la imagen y, después, los parámetros de rotación y
     # traslación que tiene asociados
     img_m = cv2.imread(filename=img, flags=cv2.IMREAD_GRAYSCALE)
-    dist_radial = np.zeros(shape=(3), dtype=np.float32)
     rotacion = np.zeros(shape=(3,3), dtype=np.float32)
     traslacion = np.zeros(shape=(3), dtype=np.float32)
     with open(calib_file) as f:
-        # las tres primeras líneas del fichero corresponden a la matriz cámara, por tanto, no nos interesan
-        lines = f.readlines()[3:]
-    dist_radial = np.array(lines[0].split(sep=" ")[:3], dtype=np.float32)
-    traslacion = np.array(lines[4].split(sep=" ")[:3], dtype=np.float32)
-    for i in range(1,4):
-        rotacion[i-1] = np.array(lines[i].split(sep=" ")[:3], dtype=np.float32)
+        # las tres primeras líneas del fichero corresponden a la matriz cámara y los parámetros de
+        # distorsión radial , por tanto, no nos interesan
+        lines = f.readlines()[4:]
+    traslacion = np.array(lines[3].split(sep=" ")[:3], dtype=np.float32)
+    for i in range(3):
+        rotacion[i] = np.array(lines[i].split(sep=" ")[:3], dtype=np.float32)
 
-    return img_m, dist_radial, rotacion, traslacion
+    return img_m, rotacion, traslacion

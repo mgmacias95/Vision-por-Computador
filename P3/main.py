@@ -68,10 +68,8 @@ if __name__ == '__main__':
     imgs = []
     rotations = []
     translations = []
-    dist_rad = []
     for photo in photos:
-        img, dist_r, rot, tra = read_images_and_calibration_parameters(img=photo, calib_file=photo+".camera")
+        img, rot, tra = read_images_and_calibration_parameters(img=photo, calib_file=photo+".camera")
         imgs.append(img)
         rotations.append(rot)
         translations.append(tra)
-        dist_rad.append(dist_r)
