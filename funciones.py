@@ -875,4 +875,14 @@ def compute_r_and_t(E):
     # y puede haber dos T distintas -u3 o u3:
     T_1 = U[:,2]
     T_2 = -U[:,2]
+    return R_1, R_2, T_1, T_2
+
+# función que, a partir de K, R y T crea una matriz cámara
+def camera_matrix(K, R, T):
+    cmatrix = np.hstack((R,T.T))
+    return K.dot(cmatrix)
+
+# función que coge las cuatro soluciones encontradas y comprueba que, para un punto dado, se encuentra en frente
+def test_if_point_is_in_front(R1, R2, T_1, T_2):
+    pass
 
