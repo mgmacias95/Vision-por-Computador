@@ -879,10 +879,33 @@ def compute_r_and_t(E):
 
 # función que, a partir de K, R y T crea una matriz cámara
 def camera_matrix(K, R, T):
+    T = T.reshape(1,3)
     cmatrix = np.hstack((R,T.T))
     return K.dot(cmatrix)
 
+# función que calcula la triangulación 3D de un punto a partir de las cámaras y los puntos 2D en correspondencias.
+# Devuelve coordenadas homogéneas
+def triangulation(P, P1, point1, point2):
+    # renombramos los puntos a x, y, x' e y'.
+    x, y = point1[0], point1[1]
+    x1, y1 = point2[0], point2[1]
+    # construimos la matriz A
+    A = np.zeros(shape=(4,4), dtype=np.float32)
+    A[0] = x*P[2] - P[0]
+    A[1] = y*P[2] - P[1]
+    A[2] = x1*P1[2] - P1[0]
+    A[3] = y1*P1[2] - P1[1]
+    # una vez tenemos A, calculamos su descomposición en valores singulares
+    U, W, V = np.linalg.svd(a=A)
+    return V[3]
+
 # función que coge las cuatro soluciones encontradas y comprueba que, para un punto dado, se encuentra en frente
-def test_if_point_is_in_front(R1, R2, T_1, T_2):
-    pass
+def test_if_point_is_in_front(K, R_1, R_2, T_1, T_2):
+    # construimos las cuatro posibles soluciones
+    camera1 = camera_matrix(K=K, R=R_1, T=T_1)
+    camera2 = camera_matrix(K=K, R=R_1, T=T_2)
+    camera3 = camera_matrix(K=K, R=R_2, T=T_1)
+    camera4 = camera_matrix(K=K, R=R_2, T=T_2)
+    # y la cámara identidad
+    camera0 = np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0]])
 

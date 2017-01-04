@@ -81,4 +81,5 @@ if __name__ == '__main__':
     F, pts1, pts2 = find_fundamental_matrix(matches=matches, kps1=kps1, kps2=kps2)
     # una vez tenemos calculada la matriz fundamental pasamos a estimar E
     E = my_find_essential_matrix(F=F, camera=camera)
-    compute_r_and_t(E=E)
+    R_1, R_2, T_1, T_2 = compute_r_and_t(E=E)
+    test_if_point_is_in_front(K=camera, R_1=R_1, R_2=R_2, T_1=T_1, T_2=T_2)
