@@ -833,34 +833,25 @@ def epipolar_symmetric_error(points1, lines1, points2, lines2):
     return (distance1 + distance2)/2
 
 # Ejercicio 4
-def read_camera(file="reconstruccion/rdimage.000.ppm.camera"):
-    # abrimos el fichero y leemos las tres primeras líneas
-    camera = np.zeros(shape=(3,3), dtype=np.float32)
-    with open(file) as f:
-        for i in range(3):
-            linea = np.array(f.readline().split(sep=" ")[:3], dtype=np.float32)
-            camera[i] = linea
-    return camera
-
 def read_images_and_calibration_parameters(img, calib_file):
     # en primer lugar leemos la imagen y, después, los parámetros de rotación y
     # traslación que tiene asociados
     img_m = cv2.imread(filename=img)
     rotacion = np.zeros(shape=(3,3), dtype=np.float32)
     traslacion = np.zeros(shape=(3), dtype=np.float32)
+    camera = np.zeros(shape=(3,3), dtype=np.float32)
     with open(calib_file) as f:
-        # las tres primeras líneas del fichero corresponden a la matriz cámara y los parámetros de
-        # distorsión radial , por tanto, no nos interesan
-        lines = f.readlines()[4:]
-    traslacion = np.array(lines[3].split(sep=" ")[:3], dtype=np.float32)
+        lines = f.readlines()
+    traslacion = np.array(lines[7].split(sep=" ")[:3], dtype=np.float32)
     for i in range(3):
-        rotacion[i] = np.array(lines[i].split(sep=" ")[:3], dtype=np.float32)
+        rotacion[i] = np.array(lines[i+4].split(sep=" ")[:3], dtype=np.float32)
+        camera[i] = np.array(lines[i].split(sep=" ")[:3], dtype=np.float32)
 
-    return img_m, rotacion, traslacion
+    return img_m, camera, rotacion, traslacion
 
 def my_find_essential_matrix(F, camera):
     # la matriz cámara es igual para ambas imágenes
-    E = camera.T.dot(F.dot(camera))
+    E = camera[1].T.dot(F.dot(camera[0]))
     print("Matriz esencial")
     print(E)
     return E
@@ -900,12 +891,22 @@ def triangulation(P, P1, point1, point2):
     return V[3]
 
 # función que coge las cuatro soluciones encontradas y comprueba que, para un punto dado, se encuentra en frente
-def test_if_point_is_in_front(K, R_1, R_2, T_1, T_2):
+def test_if_point_is_in_front(K, R_1, R_2, T_1, T_2, pts1, pts2):
     # construimos las cuatro posibles soluciones
-    camera1 = camera_matrix(K=K, R=R_1, T=T_1)
-    camera2 = camera_matrix(K=K, R=R_1, T=T_2)
-    camera3 = camera_matrix(K=K, R=R_2, T=T_1)
-    camera4 = camera_matrix(K=K, R=R_2, T=T_2)
+    camera1 = camera_matrix(K=K[1], R=R_1, T=T_1)
+    camera2 = camera_matrix(K=K[1], R=R_1, T=T_2)
+    camera3 = camera_matrix(K=K[1], R=R_2, T=T_1)
+    camera4 = camera_matrix(K=K[1], R=R_2, T=T_2)
     # y la cámara identidad
-    camera0 = np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0]])
+    camera0 = K[0].dot(np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0]]))
+    # calculamos los puntos 3D con las cuatro soluciones
+    sols = []
+    for cam in [camera1, camera2, camera3, camera4]:
+        sol = []
+        for pt1, pt2 in zip(pts1, pts2):
+            X = triangulation(P=camera0, P1=cam, point1=pt1, point2=pt2)
+            sol.append(X)
+        sol = np.array(sol)
+        sols.append(np.where(sol[:,2] < 0)[0].size)
 
+    print("hola")

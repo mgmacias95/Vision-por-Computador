@@ -60,26 +60,24 @@ if __name__ == '__main__':
     #                                           Ejercicio 4                                                            #
     ####################################################################################################################
     print("Ejercicio 4")
-    # la cámara es igual en todos los ficheros, por lo que sólo basta con leerla una vez
-    camera = read_camera()
-    print("Matriz cámara:")
-    print(camera)
-    # leemos las imágenes y los parámetros extrínsecos
+    # leemos las imágenes y los parámetros
     path = "reconstruccion/rdimage."
     photos = [path+"000.ppm",path+"001.ppm",path+"004.ppm"]
     imgs = []
     rotations = []
     translations = []
+    cameras = []
     for photo in photos:
-        img, rot, tra = read_images_and_calibration_parameters(img=photo, calib_file=photo+".camera")
+        img, cam, rot, tra = read_images_and_calibration_parameters(img=photo, calib_file=photo+".camera")
         imgs.append(img)
         rotations.append(rot)
         translations.append(tra)
+        cameras.append(cam)
 
     # una vez hemos leído los datos, calculamos las correspondencias entre las imágenes y la matriz fundamental
     matches, kps1, kps2 = get_match(img1=imgs[0], img2=imgs[1], type="BRISK", mostrar_img=False, knn_matching=False)
     F, pts1, pts2 = find_fundamental_matrix(matches=matches, kps1=kps1, kps2=kps2)
     # una vez tenemos calculada la matriz fundamental pasamos a estimar E
-    E = my_find_essential_matrix(F=F, camera=camera)
+    E = my_find_essential_matrix(F=F, camera=cameras[:2])
     R_1, R_2, T_1, T_2 = compute_r_and_t(E=E)
-    test_if_point_is_in_front(K=camera, R_1=R_1, R_2=R_2, T_1=T_1, T_2=T_2)
+    test_if_point_is_in_front(K=cameras[:2], R_1=R_1, R_2=R_2, T_1=T_1, T_2=T_2, pts1=pts1, pts2=pts2)
