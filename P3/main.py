@@ -17,45 +17,45 @@ if __name__ == '__main__':
     ####################################################################################################################
     #                                           Ejercicio 1                                                            #
     ####################################################################################################################
-    # print("Ejercicio 1")
-    # P = genera_camara_finita()
-    # p = genera_puntos_planos_ortogonales_distintos()
-    # c = proyecta_puntos_en_plano(camara=P, puntos=p)
-    # dlt = DLT(X=p, x=c)
-    # print("Matriz cámara generada")
-    # print(P)
-    # print("Estimación de la matriz cámara")
-    # print(dlt)
-    # print("Error en la estimación de P: ", estima_error(orig=P, estimada=dlt))
-    # draw_points(real_points=c, estimated_points=proyecta_puntos_en_plano(camara=dlt,puntos=p))
+    print("Ejercicio 1")
+    P = genera_camara_finita()
+    p = genera_puntos_planos_ortogonales_distintos()
+    c = proyecta_puntos_en_plano(camara=P, puntos=p)
+    dlt = DLT(X=p, x=c)
+    print("Matriz cámara generada")
+    print(P)
+    print("Estimación de la matriz cámara")
+    print(dlt)
+    print("Error en la estimación de P: ", estima_error(orig=P, estimada=dlt))
+    draw_points(real_points=c, estimated_points=proyecta_puntos_en_plano(camara=dlt,puntos=p))
     ####################################################################################################################
     #                                           Ejercicio 2                                                            #
     ####################################################################################################################
-    # print("Ejercicio 2")
-    # valid_imgs = find_valid_imgs()
-    # imgpoints, objpoints, pic_shape = find_and_draw_chessboard_corners(valid_images=valid_imgs)
-    # mtx, dist = calibrate(objpoints=objpoints, imgpoints=imgpoints, pic_shape=pic_shape[::-1])
-    # valid_und_imgs = calibrate_undistort(valid_images=valid_imgs, mtx=mtx, dist=dist, pic_shape=pic_shape[::-1])
-    # imgpoints_und, objpoints_und, pic_shape_und = find_and_draw_chessboard_corners(valid_images=valid_und_imgs)
-    # mtx_und, dist_und = calibrate(objpoints=objpoints_und, imgpoints=imgpoints_und, pic_shape=pic_shape_und)
+    print("Ejercicio 2")
+    valid_imgs = find_valid_imgs()
+    imgpoints, objpoints, pic_shape = find_and_draw_chessboard_corners(valid_images=valid_imgs)
+    mtx, dist = calibrate(objpoints=objpoints, imgpoints=imgpoints, pic_shape=pic_shape[::-1])
+    valid_und_imgs = calibrate_undistort(valid_images=valid_imgs, mtx=mtx, dist=dist, pic_shape=pic_shape[::-1])
+    imgpoints_und, objpoints_und, pic_shape_und = find_and_draw_chessboard_corners(valid_images=valid_und_imgs)
+    mtx_und, dist_und = calibrate(objpoints=objpoints_und, imgpoints=imgpoints_und, pic_shape=pic_shape_und)
     ####################################################################################################################
     #                                           Ejercicio 3                                                            #
     ####################################################################################################################
-    # print("Ejercicio 3")
-    # # leemos las imágenes
-    # vmort1 = cv2.imread("vmort/Vmort1.pgm")
-    # vmort2 = cv2.imread("vmort/Vmort2.pgm")
-    # list_matches = make_descriptors(vmort1=vmort1, vmort2=vmort2)
-    # maxmins = compare_descriptors(list_matches = list_matches)
-    # print("Mejor descriptor: ",maxmins)
-    # matches, kps1, kps2 = get_match(img1=vmort1, img2=vmort2, type=maxmins,knn_matching=False,mostrar_img=False)
-    # F, pts1, pts2 = find_fundamental_matrix(matches=matches, kps1=kps1, kps2=kps2)
-    # lines1 = find_and_draw_epipolar_lines(img=vmort1, pts=pts1, pts_other=pts2, F=F, index=2)
-    # mostrar(vmort1)
-    # lines2 = find_and_draw_epipolar_lines(img=vmort2, pts=pts2, pts_other=pts1, F=F, index=1)
-    # mostrar(vmort2)
-    # error_epipolar = epipolar_symmetric_error(points1=pts1, lines1=lines1, points2=pts2, lines2=lines2)
-    # print("Error al estimar F:", error_epipolar)
+    print("Ejercicio 3")
+    # leemos las imágenes
+    vmort1 = cv2.imread("vmort/Vmort1.pgm")
+    vmort2 = cv2.imread("vmort/Vmort2.pgm")
+    list_matches = make_descriptors(vmort1=vmort1, vmort2=vmort2)
+    maxmins = compare_descriptors(list_matches = list_matches)
+    print("Mejor descriptor: ",maxmins)
+    matches, kps1, kps2 = get_match(img1=vmort1, img2=vmort2, type=maxmins,knn_matching=False,mostrar_img=False)
+    F, pts1, pts2 = find_fundamental_matrix(matches=matches, kps1=kps1, kps2=kps2)
+    lines1 = find_and_draw_epipolar_lines(img=vmort1, pts=pts1, pts_other=pts2, F=F, index=2)
+    mostrar(vmort1)
+    lines2 = find_and_draw_epipolar_lines(img=vmort2, pts=pts2, pts_other=pts1, F=F, index=1)
+    mostrar(vmort2)
+    error_epipolar = epipolar_symmetric_error(points1=pts1, lines1=lines1, points2=pts2, lines2=lines2)
+    print("Error al estimar F:", error_epipolar)
     ####################################################################################################################
     #                                           Ejercicio 4                                                            #
     ####################################################################################################################
