@@ -80,5 +80,8 @@ if __name__ == '__main__':
     # una vez tenemos calculada la matriz fundamental pasamos a estimar E
     E = my_find_essential_matrix(F=F, camera=cameras[:2])
     R_1, R_2, T_1, T_2 = compute_r_and_t(E=E)
-    sols = test_if_point_is_in_front(K=cameras[:2], R_1=R_1, R_2=R_2, T_1=T_1, T_2=T_2, pts1=pts1, pts2=pts2)
-    print(sols)
+    R,T = test_if_point_is_in_front(K=cameras[:2], R_1=R_1, R_2=R_2, T_1=T_1, T_2=T_2, pts1=pts1, pts2=pts2)
+    print("R:")
+    print(R)
+    print("t:")
+    print(T)

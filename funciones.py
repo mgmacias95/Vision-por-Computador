@@ -888,7 +888,7 @@ def triangulation(P, P1, point1, point2):
     A[3] = y1*P1[2] - P1[1]
     # una vez tenemos A, calculamos su descomposición en valores singulares
     U, W, V = np.linalg.svd(a=A)
-    return V[3]
+    return V[3]/V[3,-1]
 
 # función que coge las cuatro soluciones encontradas y comprueba que, para un punto dado, se encuentra en frente
 def test_if_point_is_in_front(K, R_1, R_2, T_1, T_2, pts1, pts2):
@@ -909,4 +909,7 @@ def test_if_point_is_in_front(K, R_1, R_2, T_1, T_2, pts1, pts2):
         sol = np.array(sol)
         sols.append(np.where(sol[:,2] < 0)[0].size)
 
-    return sols
+    print("Número de puntos negativos encontrados por cada cámara")
+    print(sols)
+
+    return [(R_1,T_1),(R_1,T_2),(R_2,T_1),(R_2,T_2)][min(sols)]
