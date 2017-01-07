@@ -909,4 +909,4 @@ def test_if_point_is_in_front(K, R_1, R_2, T_1, T_2, pts1, pts2):
         sol = np.array(sol)
         sols.append(np.where(sol[:,2] < 0)[0].size)
 
-    print("hola")
+    return sols
